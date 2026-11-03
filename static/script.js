@@ -6,6 +6,7 @@ const comparisonSlider = document.getElementById("comparisonSlider");
 
 const quality = document.getElementById("quality");
 const qualityValue = document.getElementById("qualityValue");
+const qualityControl = document.querySelector(".qualityControl");
 
 const statusElement = document.getElementById("status");
 const downloadLink = document.getElementById("downloadLink");
@@ -13,6 +14,7 @@ let currentImageUrl = null;
 let currentWebpUrl = null;
 let selectedImage = null;
 let conversionRequest = 0;
+let imageSelectionRequest = 0;
 
 function convertImage() {
   if (!selectedImage) return;
@@ -66,6 +68,10 @@ function updateComparison() {
   comparisonSlider.setAttribute("aria-valuetext", `Divider at ${position}% of the image width`);
 }
 
+function syncQualityWidth() {
+  qualityControl.style.width = `${comparison.getBoundingClientRect().width}px`;
+}
+
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -79,6 +85,27 @@ function getFileFormat(file) {
   return extension && extension !== file.name ? extension.toUpperCase() : "Original";
 }
 
+function loadImageFile(file) {
+  if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+  if (currentWebpUrl) URL.revokeObjectURL(currentWebpUrl);
+  conversionRequest += 1;
+  currentImageUrl = URL.createObjectURL(file);
+  currentWebpUrl = null;
+  afterImage.removeAttribute("src");
+  selectedImage = file;
+  downloadLink.hidden = true;
+  // statusElement.textContent = "Converting image…";
+  statusElement.textContent = "";
+  comparison.hidden = false;
+  beforeImage.onload = () => {
+    comparison.style.aspectRatio = `${beforeImage.naturalWidth} / ${beforeImage.naturalHeight}`;
+    syncQualityWidth();
+  };
+  beforeImage.src = currentImageUrl;
+  updateComparison();
+  convertImage();
+}
+
 fileInput.addEventListener("change", () => {
   const file = fileInput.files[0];
   if (!file) return;
@@ -89,30 +116,55 @@ fileInput.addEventListener("change", () => {
     return;
   }
 
-  if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
-  if (currentWebpUrl) URL.revokeObjectURL(currentWebpUrl);
-  conversionRequest += 1;
-  currentImageUrl = URL.createObjectURL(file);
-  currentWebpUrl = null;
-  afterImage.removeAttribute("src");
-  selectedImage = file;
-  downloadLink.hidden = true;
-  statusElement.textContent = "Converting image…";
-  beforeImage.src = currentImageUrl;
-  comparison.hidden = false;
-  beforeImage.onload = () => {
-    comparison.style.aspectRatio = `${beforeImage.naturalWidth} / ${beforeImage.naturalHeight}`;
-  };
-  updateComparison();
-  convertImage();
+  imageSelectionRequest += 1;
+  loadImageFile(file);
 });
+
+async function loadSampleImage() {
+  const requestId = ++imageSelectionRequest;
+  try {
+    const directoryResponse = await fetch("./images/");
+    if (!directoryResponse.ok) throw new Error("Could not read the images folder.");
+
+    const directory = new DOMParser().parseFromString(
+      await directoryResponse.text(),
+      "text/html",
+    );
+    const imagePaths = [...directory.querySelectorAll("a[href]")]
+      .map((link) => new URL(link.getAttribute("href"), directoryResponse.url).href)
+      .filter((url) => /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(new URL(url).pathname));
+
+    if (imagePaths.length === 0) throw new Error("No images found in the images folder.");
+
+    const samplePath = imagePaths[Math.floor(Math.random() * imagePaths.length)];
+    const response = await fetch(samplePath);
+    if (!response.ok) throw new Error("Sample image request failed.");
+
+    const blob = await response.blob();
+    if (requestId !== imageSelectionRequest) return;
+
+    const sampleFile = new File([blob], new URL(samplePath).pathname.split("/").pop(), {
+      type: blob.type || "image/" + samplePath.split(".").pop().toLowerCase().replace("jpg", "jpeg"),
+    });
+    loadImageFile(sampleFile);
+  } catch {
+    if (requestId === imageSelectionRequest) {
+      statusElement.textContent = "Could not load the sample image.";
+    }
+  }
+}
+
+loadSampleImage();
+
+new ResizeObserver(syncQualityWidth).observe(comparison);
 
 comparisonSlider.addEventListener("input", updateComparison);
 
 quality.addEventListener("input", () => {
   qualityValue.textContent = quality.value;
   if (selectedImage) {
-    statusElement.textContent = "Converting image…";
+    // statusElement.textContent = "Converting image…";
+    statusElement.textContent = "";
     downloadLink.hidden = true;
     convertImage();
   }
