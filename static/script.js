@@ -24,12 +24,22 @@ function convertImage() {
   const sourceFile = selectedImage;
   const requestedQuality = Number(quality.value) / 100;
   const image = new Image();
-  
+
   image.onload = () => {
+    if (requestId !== conversionRequest) return;
+
     const canvas = document.createElement("canvas");
     canvas.width = image.naturalWidth;
     canvas.height = image.naturalHeight;
-    canvas.getContext("2d").drawImage(image, 0, 0);
+    const canvasContext = canvas.getContext("2d");
+
+    if (!canvasContext) {
+      statusElement.textContent = "Could not prepare this image for conversion.";
+      downloadLink.hidden = true;
+      return;
+    }
+
+    canvasContext.drawImage(image, 0, 0);
 
     canvas.toBlob((blob) => {
       if (requestId !== conversionRequest) return;
@@ -52,7 +62,11 @@ function convertImage() {
       const sizeChange = savings >= 0
         ? `Saved ${savings.toFixed(1)}%.`
         : `File size increased by ${Math.abs(savings).toFixed(1)}%.`;
-      statusElement.textContent = `Original ${originalFormat} size: ${originalSize}.\nWebP size: ${outputSize}.\n${sizeChange}`;
+      statusElement.textContent = [
+        `Original ${originalFormat} size: ${originalSize}.`,
+        `WebP size: ${outputSize}.`,
+        sizeChange,
+      ].join("\n");
     }, "image/webp", requestedQuality);
   };
   image.onerror = () => {
@@ -94,12 +108,14 @@ function loadImageFile(file) {
   afterImage.removeAttribute("src");
   selectedImage = file;
   downloadLink.hidden = true;
-  // statusElement.textContent = "Converting image…";
-  statusElement.textContent = "";
+  statusElement.textContent = "Converting image…";
   comparison.hidden = false;
   beforeImage.onload = () => {
     comparison.style.aspectRatio = `${beforeImage.naturalWidth} / ${beforeImage.naturalHeight}`;
     syncQualityWidth();
+  };
+  beforeImage.onerror = () => {
+    statusElement.textContent = "Could not load this image.";
   };
   beforeImage.src = currentImageUrl;
   updateComparison();
@@ -163,8 +179,7 @@ comparisonSlider.addEventListener("input", updateComparison);
 quality.addEventListener("input", () => {
   qualityValue.textContent = quality.value;
   if (selectedImage) {
-    // statusElement.textContent = "Converting image…";
-    statusElement.textContent = "";
+    statusElement.textContent = "Converting image…";
     downloadLink.hidden = true;
     convertImage();
   }

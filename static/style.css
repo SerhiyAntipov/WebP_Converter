@@ -13,9 +13,8 @@ h1 {
   overflow: hidden;
   margin: 10px auto;
   width: fit-content;
-  min-width: min(320px, 100%);
+  /* min-width: min(320px, 100%); */
   max-width: 100%;
-  /* max-height: 320px; */
   height: 320px;
   min-height: 320px;
   background: #252525;
@@ -27,7 +26,6 @@ h1 {
 
 .comparisonImage {
   display: block;
-  /* max-height: 320px; */
   height: 320px;
   max-width: 100%;
   object-fit: contain;
@@ -172,18 +170,12 @@ h1 {
 
 #status {
   min-height: 1.5em;
-  text-decoration: none;
   white-space: pre-line;
   border-radius: 5px;
-  /* border: solid; */
   display: block;
   padding: 10px 20px;
   max-width: fit-content;
   margin: 0 auto;
-}
-
-#status[hidden] {
-  display: none;
 }
 
 #downloadLink {
@@ -207,8 +199,6 @@ h1 {
 #label-fileInput {
   display: inline-block;
   padding: 10px 20px;
-  /* background: #007bff; */
-  /* color: white; */
   cursor: pointer;
   border-radius: 5px;
   border-color: #1683ff;
