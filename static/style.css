@@ -1,0 +1,43 @@
+body {
+  text-align: center;
+}
+
+#imgWrapper {
+  background-color: grey;
+  margin: 20px auto;
+  width: fit-content;
+  max-width: 100%;
+}
+
+#imgWrapper[hidden] {
+  display: none;
+}
+
+#preview {
+  display: block;
+  max-height: 320px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.qualityControl {
+  padding: 20px;
+}
+
+#quality {
+  display: block;
+  margin: 0 auto;
+}
+
+#status {
+  min-height: 1.5em;
+}
+
+#downloadLink {
+  display: inline-block;
+  margin: 8px;
+}
+
+#downloadLink[hidden] {
+  display: none;
+}
