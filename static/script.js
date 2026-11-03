@@ -138,28 +138,23 @@ fileInput.addEventListener("change", () => {
 
 async function loadSampleImage() {
   const requestId = ++imageSelectionRequest;
+  const sampleImagePaths = [
+    "./images/img_01.jpg",
+    "./images/img_02.jpg",
+    "./images/img_03.jpg",
+    "./images/img_04.jpg",
+    "./images/img_05.jpg",
+  ];
+
   try {
-    const directoryResponse = await fetch("./images/");
-    if (!directoryResponse.ok) throw new Error("Could not read the images folder.");
-
-    const directory = new DOMParser().parseFromString(
-      await directoryResponse.text(),
-      "text/html",
-    );
-    const imagePaths = [...directory.querySelectorAll("a[href]")]
-      .map((link) => new URL(link.getAttribute("href"), directoryResponse.url).href)
-      .filter((url) => /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(new URL(url).pathname));
-
-    if (imagePaths.length === 0) throw new Error("No images found in the images folder.");
-
-    const samplePath = imagePaths[Math.floor(Math.random() * imagePaths.length)];
+    const samplePath = sampleImagePaths[Math.floor(Math.random() * sampleImagePaths.length)];
     const response = await fetch(samplePath);
     if (!response.ok) throw new Error("Sample image request failed.");
 
     const blob = await response.blob();
     if (requestId !== imageSelectionRequest) return;
 
-    const sampleFile = new File([blob], new URL(samplePath).pathname.split("/").pop(), {
+    const sampleFile = new File([blob], decodeURIComponent(new URL(samplePath, document.baseURI).pathname.split("/").pop()), {
       type: blob.type || "image/" + samplePath.split(".").pop().toLowerCase().replace("jpg", "jpeg"),
     });
     loadImageFile(sampleFile);
