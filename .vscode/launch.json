@@ -1,30 +1,13 @@
 {
-    "version": "0.2.0",
-
-    "configurations": [
-        {
-            "name": "Run Python",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/app.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Debug JavaScript",
-            "type": "chrome",
-            "request": "launch",
-            "url": "http://127.0.0.1:5000",
-            "preLaunchTask": "Wait for Flask"
-        }
-    ],
-
-    "compounds": [
-        {
-            "name": "Run & Debug",
-            "configurations": [
-                "Run Python",
-                "Debug JavaScript"
-            ]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch WebP Converter",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:8000",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "Start static web server"
+    }
+  ]
 }

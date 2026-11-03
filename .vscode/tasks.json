@@ -1,21 +1,27 @@
 {
-    "version": "2.0.0",
-
-    "tasks": [
-        {
-            "label": "Wait for Flask",
-            "type": "shell",
-            "command": "while (-not (Test-NetConnection 127.0.0.1 -Port 5000 -InformationLevel Quiet)) { Start-Sleep -Milliseconds 200 }",
-            "options": {
-                "shell": {
-                    "executable": "powershell.exe",
-                    "args": [
-                        "-NoProfile",
-                        "-Command"
-                    ]
-                }
-            },
-            "problemMatcher": []
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start static web server",
+      "type": "process",
+      "command": "python",
+      "args": ["-m", "http.server", "8000", "--bind", "127.0.0.1"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "^(Serving HTTP on .*)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^Serving HTTP on .*",
+          "endsPattern": "^Serving HTTP on .*port 8000"
         }
-    ]
+      }
+    }
+  ]
 }
