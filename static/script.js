@@ -175,7 +175,6 @@ quality.addEventListener("input", () => {
   qualityValue.textContent = quality.value;
   if (selectedImage) {
     statusElement.textContent = "Converting image…";
-    downloadLink.hidden = true;
     convertImage();
   }
 });
