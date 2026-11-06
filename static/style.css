@@ -1,5 +1,12 @@
 body {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100vh;
+  margin: 0 auto;
   text-align: center;
+  padding: 10px;
+  background-color: #f0efef;
 }
 
 h1 {
@@ -7,17 +14,28 @@ h1 {
   margin: 10px;
 }
 
+.imageWrapper {
+  display: flex;
+  flex: 0 0 65%;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.textWrapper {
+  flex: 0 0 35%;
+}
+
 .comparison {
   --position: 50%;
   position: relative;
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
   margin: 10px auto;
   width: fit-content;
-  /* min-width: min(320px, 100%); */
   max-width: 100%;
-  height: 320px;
-  min-height: 320px;
   background: #252525;
+  box-sizing: border-box;
 }
 
 .comparison[hidden] {
@@ -26,17 +44,15 @@ h1 {
 
 .comparisonImage {
   display: block;
-  height: 320px;
-  max-width: 100%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .afterImage {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
   clip-path: inset(0 0 0 var(--position));
 }
 
@@ -118,7 +134,6 @@ h1 {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  min-height: 320px;
   margin: 0;
   appearance: none;
   background: transparent;
@@ -180,12 +195,13 @@ h1 {
 
 #downloadLink {
   display: inline-block;
-  padding: 10px 20px;
+  padding: 10px;
   border-radius: 5px;
   border-color: #20611a;
   border-style: solid;
   text-decoration: none;
   color: #20611a;
+  margin: 0 10px;
 }
 
 #downloadLink:hover {
@@ -193,16 +209,17 @@ h1 {
 }
 
 #downloadLink[hidden] {
-  display: none;
+  /* display: none; */
 }
 
 #label-fileInput {
   display: inline-block;
-  padding: 10px 20px;
+  padding: 10px;
   cursor: pointer;
   border-radius: 5px;
   border-color: #1683ff;
   border-style: solid;
+  margin: 0 10px;
 }
 
 #label-fileInput:hover {
