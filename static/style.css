@@ -6,8 +6,8 @@
   -webkit-text-size-adjust: 100%;
   --page-padding: clamp(12px, 2.5vw, 28px);
   --control-border: #20611a;
-  --quality-border: #20611a;
   --accent: #1683ff;
+  --hidden: #fe7070;
 }
 
 * {
@@ -30,7 +30,7 @@ body {
   color: #202124;
   text-align: center;
   background: #f0efef;
-  min-width: 280px;
+  min-width: 320px;
 }
 
 main {
@@ -47,32 +47,22 @@ h1 {
   line-height: 1.25;
 }
 
-.imageWrapper {
-  display: flex;
-  flex: 0 1 auto;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-}
-
-.textWrapper {
+.converterPanel {
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 10px 12px;
-  width: min(100%, 900px);
+  width: min(100%, 600px);
   margin: 12px auto 0;
-  max-width: 600px;
 }
 
-#qualitySection,
-#infoSection {
+#converterControls {
   display: contents;
 }
 
-#infoSection {
+#conversionResults {
   display: flex;
   flex: 1 1 100%;
   flex-wrap: wrap;
@@ -80,7 +70,7 @@ h1 {
   gap: 4px 12px;
 }
 
-#infoSection p {
+#conversionResults p {
   margin: 0;
 }
 
@@ -95,11 +85,10 @@ h1 {
   clip-path: inset(50%);
 }
 
-.comparison {
+.imageComparison {
   --position: 50%;
   position: relative;
   flex: 1 1 auto;
-  /* width: min(100%, 1200px); */
   min-width: 200px;
   min-height: 180px;
   max-height: 72svh;
@@ -108,7 +97,7 @@ h1 {
   background: #d5d5d6;
 }
 
-.comparison[hidden] {
+.imageComparison[hidden] {
   display: none;
 }
 
@@ -120,13 +109,13 @@ h1 {
   object-position: center;
 }
 
-.afterImage {
+.comparisonImageConverted {
   position: absolute;
   inset: 0;
   clip-path: inset(0 0 0 var(--position));
 }
 
-.afterImage:not([src]) {
+.comparisonImageConverted:not([src]) {
   display: none;
 }
 
@@ -142,11 +131,11 @@ h1 {
   pointer-events: none;
 }
 
-.beforeLabel {
+.comparisonLabelBefore {
   left: 12px;
 }
 
-.afterLabel {
+.comparisonLabelAfter {
   right: 12px;
 }
 
@@ -237,7 +226,7 @@ h1 {
   outline-offset: -3px;
 }
 
-#label-fileInput,
+#uploadButton,
 #downloadLink {
   display: inline-block;
   min-height: 44px;
@@ -250,23 +239,25 @@ h1 {
   cursor: pointer;
 }
 
-#label-fileInput {
+#uploadButton {
   border-color: var(--accent);
   color: #075ebc;
 }
 
-#fileInput:focus-visible+#label-fileInput {
+#imageInput:focus-visible+#uploadButton {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
-#label-fileInput:hover,
+#uploadButton:hover,
 #downloadLink:hover {
   background: #e2e2e3;
 }
 
 #downloadLink[hidden] {
   /* display: none; */
+  color: transparent;
+  border: 1px solid var(--hidden);
 }
 
 .qualityControl {
@@ -275,12 +266,12 @@ h1 {
   gap: 4px;
   max-width: 420px;
   margin: 0;
-  border: 1px solid var(--quality-border);
-  padding: 5px 5px;
+  border: 1px solid var(--control-border);
+  padding: 5px;
   border-radius: 5px;
 }
 
-#quality {
+#qualitySlider {
   display: block;
   width: 100%;
   margin: 0;
@@ -292,7 +283,7 @@ h1 {
     padding-bottom: 12px;
   }
 
-  .comparison {
+  .imageComparison {
     max-height: 68svh;
   }
 }
@@ -302,11 +293,7 @@ h1 {
     --page-padding: 12px;
   }
 
-  .imageWrapper {
-    flex: 0 1 auto;
-  }
-
-  .comparison {
+  .imageComparison {
     flex: 0 1 auto;
     width: 100%;
     min-height: 0;
@@ -315,12 +302,12 @@ h1 {
     aspect-ratio: 4 / 3;
   }
 
-  .textWrapper {
+  .converterPanel {
     gap: 10px;
     margin-top: 14px;
   }
 
-  #label-fileInput,
+  #uploadButton,
   #downloadLink {
     flex: 1 1 140px;
   }
@@ -329,10 +316,9 @@ h1 {
     flex-basis: 100%;
     order: 1;
     max-width: none;
-    /* padding: 0 4px; */
   }
 
-  #infoSection {
+  #conversionResults {
     order: 2;
   }
 }
@@ -351,23 +337,22 @@ h1 {
     font-size: 1rem;
   }
 
-  .comparison {
+  .imageComparison {
     flex: 1 1 auto;
     width: auto;
-    /* height: 1px; */
     max-width: 100%;
     min-height: 120px;
     max-height: 64dvh;
     margin-inline: auto;
   }
 
-  .textWrapper {
+  .converterPanel {
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 6px;
   }
 
-  #label-fileInput,
+  #uploadButton,
   #downloadLink {
     flex: 0 0 auto;
     min-height: 40px;
@@ -376,12 +361,12 @@ h1 {
 
   .qualityControl {
     flex: 1 1 120px;
-    min-width: 90px;
-    padding: 0;
+    min-width: 160px;
+    padding: 4px;
     order: 0;
   }
 
-  #infoSection {
+  #conversionResults {
     order: 2;
   }
 }
@@ -393,11 +378,11 @@ h1 {
     font-size: 11px;
   }
 
-  .beforeLabel {
+  .comparisonLabelBefore {
     left: 8px;
   }
 
-  .afterLabel {
+  .comparisonLabelAfter {
     right: 8px;
   }
 }

@@ -12,33 +12,31 @@
 <body>
   <main>
     <h1>WebP CONVERTER</h1>
-    <div class="imageWrapper">
-      <div id="comparison" class="comparison">
-        <img id="beforeImage" class="comparisonImage" alt="Original image" />
-        <img id="afterImage" class="comparisonImage afterImage" alt="Image converted to WebP" />
-        <span class="comparisonLabel beforeLabel">Before</span>
-        <span class="comparisonLabel afterLabel">After</span>
-        <span class="comparisonDivider" aria-hidden="true"><span></span></span>
-        <input type="range" id="comparisonSlider" class="comparisonSlider" min="0" max="100" value="50"
-          aria-label="Compare image before and after conversion" aria-controls="comparison"
-          aria-valuetext="Divider at 50% of the image width" />
-      </div>
+    <div id="imageComparison" class="imageComparison">
+      <img id="originalImage" class="comparisonImage" alt="Original image" />
+      <img id="convertedImage" class="comparisonImage comparisonImageConverted" alt="Image converted to WebP" />
+      <span class="comparisonLabel comparisonLabelBefore">Before</span>
+      <span class="comparisonLabel comparisonLabelAfter">After</span>
+      <span class="comparisonDivider" aria-hidden="true"><span></span></span>
+      <input type="range" id="comparisonSlider" class="comparisonSlider" min="0" max="100" value="50"
+        aria-label="Compare image before and after conversion" aria-controls="imageComparison"
+        aria-valuetext="Divider at 50% of the image width" />
     </div>
-    <div class="textWrapper">
-      <div id="qualitySection">
-        <input type="file" id="fileInput" accept="image/*" class="visuallyHidden" />
-        <label for="fileInput" id="label-fileInput">Choose an image</label>
+    <div class="converterPanel">
+      <div id="converterControls">
+        <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" />
+        <label for="imageInput" id="uploadButton">Choose an image</label>
 
         <div class="qualityControl">
-          <input type="range" id="quality" min="0" max="100" value="80" step="5" />
-          <label for="quality">Quality: <span id="qualityValue">80</span>%</label>
+          <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
+          <label for="qualitySlider">Quality: <span id="qualityValue">80</span>%</label>
         </div>
         <a id="downloadLink" hidden download="converted.webp">Download WebP</a>
       </div>
-      <div id="infoSection">
-        <p id="sizeOriginal"></p>
-        <p id="sizeWebP"></p>
-        <p id="sizeSaved"></p>
+      <div id="conversionResults">
+        <p id="originalSize"></p>
+        <p id="webpSize"></p>
+        <p id="sizeChange"></p>
       </div>
     </div>
   </main>
