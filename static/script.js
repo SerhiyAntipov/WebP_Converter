@@ -8,7 +8,9 @@ const quality = document.getElementById("quality");
 const qualityValue = document.getElementById("qualityValue");
 const qualityControl = document.querySelector(".qualityControl");
 
-const statusElement = document.getElementById("status");
+const sizeOriginalElement = document.getElementById("sizeOriginal");
+const sizeWebpElement = document.getElementById("sizeWebP");
+const sizeSavedElement = document.getElementById("sizeSaved");
 const downloadLink = document.getElementById("downloadLink");
 let currentImageUrl = null;
 let currentWebpUrl = null;
@@ -34,44 +36,42 @@ function convertImage() {
     const canvasContext = canvas.getContext("2d");
 
     if (!canvasContext) {
-      statusElement.textContent = "Could not prepare this image for conversion.";
       downloadLink.hidden = true;
       return;
     }
 
     canvasContext.drawImage(image, 0, 0);
 
-    canvas.toBlob((blob) => {
-      if (requestId !== conversionRequest) return;
+    canvas.toBlob(
+      (blob) => {
+        if (requestId !== conversionRequest) return;
 
-      if (!blob || blob.type !== "image/webp") {
-        statusElement.textContent = "Could not create a WebP image in this browser.";
-        downloadLink.hidden = true;
-        return;
-      }
+        if (!blob || blob.type !== "image/webp") {
+          downloadLink.hidden = true;
+          return;
+        }
 
-      if (currentWebpUrl) URL.revokeObjectURL(currentWebpUrl);
-      currentWebpUrl = URL.createObjectURL(blob);
-      afterImage.src = currentWebpUrl;
-      downloadLink.href = currentWebpUrl;
-      downloadLink.hidden = false;
-      const outputSize = formatFileSize(blob.size);
-      const originalSize = formatFileSize(sourceFile.size);
-      const originalFormat = getFileFormat(sourceFile);
-      const savings = ((sourceFile.size - blob.size) / sourceFile.size) * 100;
-      const sizeChange = savings >= 0
-        ? `Saved ${savings.toFixed(1)}%.`
-        : `File size increased by ${Math.abs(savings).toFixed(1)}%.`;
-      statusElement.textContent = [
-        `Original ${originalFormat} size: ${originalSize}.`,
-        `WebP size: ${outputSize}.`,
-        sizeChange,
-      ].join("\n");
-    }, "image/webp", requestedQuality);
-  };
-  image.onerror = () => {
-    if (requestId !== conversionRequest) return;
-    statusElement.textContent = "Could not load this image.";
+        if (currentWebpUrl) URL.revokeObjectURL(currentWebpUrl);
+        currentWebpUrl = URL.createObjectURL(blob);
+        afterImage.src = currentWebpUrl;
+        downloadLink.href = currentWebpUrl;
+        downloadLink.hidden = false;
+        const outputSize = formatFileSize(blob.size);
+        const originalSize = formatFileSize(sourceFile.size);
+        const originalFormat = getFileFormat(sourceFile);
+        const savings = ((sourceFile.size - blob.size) / sourceFile.size) * 100;
+        const sizeChange =
+          savings >= 0
+            ? `Saved: ${savings.toFixed(1)}%.`
+            : `File size increased by ${Math.abs(savings).toFixed(1)}%.`;
+
+        sizeOriginalElement.textContent = `Original ${originalFormat} size: ${originalSize}.`;
+        sizeWebpElement.textContent = `WebP size: ${outputSize}.`;
+        sizeSavedElement.textContent = sizeChange;
+      },
+      "image/webp",
+      requestedQuality,
+    );
   };
   image.src = imageUrl;
 }
@@ -79,7 +79,10 @@ function convertImage() {
 function updateComparison() {
   const position = comparisonSlider.value;
   comparison.style.setProperty("--position", `${position}%`);
-  comparisonSlider.setAttribute("aria-valuetext", `Divider at ${position}% of the image width`);
+  comparisonSlider.setAttribute(
+    "aria-valuetext",
+    `Divider at ${position}% of the image width`,
+  );
 }
 
 function syncQualityWidth() {
@@ -96,7 +99,9 @@ function getFileFormat(file) {
   if (file.type === "image/jpeg") return "JPG";
 
   const extension = file.name.split(".").pop();
-  return extension && extension !== file.name ? extension.toUpperCase() : "Original";
+  return extension && extension !== file.name
+    ? extension.toUpperCase()
+    : "Original";
 }
 
 function loadImageFile(file) {
@@ -108,14 +113,13 @@ function loadImageFile(file) {
   afterImage.removeAttribute("src");
   selectedImage = file;
   downloadLink.hidden = true;
-  statusElement.textContent = "Converting image…";
+  sizeOriginalElement.textContent = "";
+  sizeWebpElement.textContent = "";
+  sizeSavedElement.textContent = "";
   comparison.hidden = false;
   beforeImage.onload = () => {
     comparison.style.aspectRatio = `${beforeImage.naturalWidth} / ${beforeImage.naturalHeight}`;
     syncQualityWidth();
-  };
-  beforeImage.onerror = () => {
-    statusElement.textContent = "Could not load this image.";
   };
   beforeImage.src = currentImageUrl;
   updateComparison();
@@ -128,7 +132,6 @@ fileInput.addEventListener("change", () => {
 
   if (!file.type.startsWith("image/")) {
     fileInput.value = "";
-    statusElement.textContent = "Please choose an image file.";
     return;
   }
 
@@ -147,21 +150,29 @@ async function loadSampleImage() {
   ];
 
   try {
-    const samplePath = sampleImagePaths[Math.floor(Math.random() * sampleImagePaths.length)];
+    const samplePath =
+      sampleImagePaths[Math.floor(Math.random() * sampleImagePaths.length)];
     const response = await fetch(samplePath);
     if (!response.ok) throw new Error("Sample image request failed.");
 
     const blob = await response.blob();
     if (requestId !== imageSelectionRequest) return;
 
-    const sampleFile = new File([blob], decodeURIComponent(new URL(samplePath, document.baseURI).pathname.split("/").pop()), {
-      type: blob.type || "image/" + samplePath.split(".").pop().toLowerCase().replace("jpg", "jpeg"),
-    });
+    const sampleFile = new File(
+      [blob],
+      decodeURIComponent(
+        new URL(samplePath, document.baseURI).pathname.split("/").pop(),
+      ),
+      {
+        type:
+          blob.type ||
+          "image/" +
+          samplePath.split(".").pop().toLowerCase().replace("jpg", "jpeg"),
+      },
+    );
     loadImageFile(sampleFile);
   } catch {
-    if (requestId === imageSelectionRequest) {
-      statusElement.textContent = "Could not load the sample image.";
-    }
+    // The sample image is optional; the converter remains available for uploads.
   }
 }
 
@@ -174,7 +185,6 @@ comparisonSlider.addEventListener("input", updateComparison);
 quality.addEventListener("input", () => {
   qualityValue.textContent = quality.value;
   if (selectedImage) {
-    statusElement.textContent = "Converting image…";
     convertImage();
   }
 });

@@ -1,58 +1,48 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebP Converter</title>
 
-    <link rel="stylesheet" href="./static/style.css" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebP Converter</title>
 
-  <body>
+  <link rel="stylesheet" href="./static/style.css" />
+</head>
+
+<body>
+  <main>
+    <h1>WebP CONVERTER</h1>
     <div class="imageWrapper">
-      <h1>WebP CONVERTER</h1>
-
       <div id="comparison" class="comparison">
         <img id="beforeImage" class="comparisonImage" alt="Original image" />
-        <img
-          id="afterImage"
-          class="comparisonImage afterImage"
-          alt="Image converted to WebP"
-        />
+        <img id="afterImage" class="comparisonImage afterImage" alt="Image converted to WebP" />
         <span class="comparisonLabel beforeLabel">Before</span>
         <span class="comparisonLabel afterLabel">After</span>
         <span class="comparisonDivider" aria-hidden="true"><span></span></span>
-        <input
-          type="range"
-          id="comparisonSlider"
-          class="comparisonSlider"
-          min="0"
-          max="100"
-          value="50"
-          aria-label="Compare image before and after conversion"
-          aria-valuetext="Divider at 50% of the image width"
-        />
+        <input type="range" id="comparisonSlider" class="comparisonSlider" min="0" max="100" value="50"
+          aria-label="Compare image before and after conversion" aria-controls="comparison"
+          aria-valuetext="Divider at 50% of the image width" />
       </div>
     </div>
     <div class="textWrapper">
-      <label for="fileInput" id="label-fileInput">Choose an image</label>
-      <input type="file" id="fileInput" accept="image/*" hidden />
+      <div id="qualitySection">
+        <input type="file" id="fileInput" accept="image/*" class="visuallyHidden" />
+        <label for="fileInput" id="label-fileInput">Choose an image</label>
 
-      <div class="qualityControl">
-        <input
-          type="range"
-          id="quality"
-          min="0"
-          max="100"
-          value="80"
-          step="5"
-        />
-        <label for="quality">Quality: <span id="qualityValue">80</span>%</label>
+        <div class="qualityControl">
+          <input type="range" id="quality" min="0" max="100" value="80" step="5" />
+          <label for="quality">Quality: <span id="qualityValue">80</span>%</label>
+        </div>
+        <a id="downloadLink" hidden download="converted.webp">Download WebP</a>
       </div>
-
-      <a id="downloadLink" hidden download="converted.webp">Download WebP</a>
-      <p id="status" role="status" aria-live="polite"></p>
-      <script src="./static/script.js"></script>
+      <div id="infoSection">
+        <p id="sizeOriginal"></p>
+        <p id="sizeWebP"></p>
+        <p id="sizeSaved"></p>
+      </div>
     </div>
-  </body>
+  </main>
+  <script src="./static/script.js"></script>
+</body>
+
 </html>

@@ -6,6 +6,7 @@
   -webkit-text-size-adjust: 100%;
   --page-padding: clamp(12px, 2.5vw, 28px);
   --control-border: #20611a;
+  --quality-border: #20611a;
   --accent: #1683ff;
 }
 
@@ -32,6 +33,14 @@ body {
   min-width: 280px;
 }
 
+main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
 h1 {
   margin: 0 0 12px;
   font-size: clamp(1.1rem, 2vw, 1.5rem);
@@ -56,6 +65,34 @@ h1 {
   width: min(100%, 900px);
   margin: 12px auto 0;
   max-width: 600px;
+}
+
+#qualitySection,
+#infoSection {
+  display: contents;
+}
+
+#infoSection {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+}
+
+#infoSection p {
+  margin: 0;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .comparison {
@@ -105,8 +142,13 @@ h1 {
   pointer-events: none;
 }
 
-.beforeLabel { left: 12px; }
-.afterLabel { right: 12px; }
+.beforeLabel {
+  left: 12px;
+}
+
+.afterLabel {
+  right: 12px;
+}
 
 .comparisonDivider {
   position: absolute;
@@ -213,13 +255,18 @@ h1 {
   color: #075ebc;
 }
 
+#fileInput:focus-visible+#label-fileInput {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
 #label-fileInput:hover,
 #downloadLink:hover {
   background: #e2e2e3;
 }
 
 #downloadLink[hidden] {
-  display: none;
+  /* display: none; */
 }
 
 .qualityControl {
@@ -228,6 +275,9 @@ h1 {
   gap: 4px;
   max-width: 420px;
   margin: 0;
+  border: 1px solid var(--quality-border);
+  padding: 5px 5px;
+  border-radius: 5px;
 }
 
 #quality {
@@ -235,18 +285,6 @@ h1 {
   width: 100%;
   margin: 0;
   accent-color: var(--accent);
-}
-
-#status {
-  flex: 1 1 100%;
-  min-height: 4.2em;
-  max-width: 100%;
-  margin: 0;
-  padding: 4px 10px;
-  border-radius: 5px;
-  line-height: 1.35;
-  white-space: pre-line;
-  overflow-wrap: anywhere;
 }
 
 @media (min-width: 900px) and (min-height: 600px) {
@@ -291,10 +329,10 @@ h1 {
     flex-basis: 100%;
     order: 1;
     max-width: none;
-    padding: 0 4px;
+    /* padding: 0 4px; */
   }
 
-  #status {
+  #infoSection {
     order: 2;
   }
 }
@@ -343,10 +381,8 @@ h1 {
     order: 0;
   }
 
-  #status {
-    flex: 1 1 100%;
-    padding: 0;
-    font-size: 0.75rem;
+  #infoSection {
+    order: 2;
   }
 }
 
@@ -357,6 +393,11 @@ h1 {
     font-size: 11px;
   }
 
-  .beforeLabel { left: 8px; }
-  .afterLabel { right: 8px; }
+  .beforeLabel {
+    left: 8px;
+  }
+
+  .afterLabel {
+    right: 8px;
+  }
 }
