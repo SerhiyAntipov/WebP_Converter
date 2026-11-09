@@ -68,16 +68,14 @@ function getFileFormat(file) {
 }
 
 function updateConversionResults(sourceFile, webpBlob) {
-  const savedPercent = ((sourceFile.size - webpBlob.size) / sourceFile.size) * 100;
-  const sizeChange =
-    savedPercent >= 0
-      ? `Saved: ${savedPercent.toFixed(1)}%.`
-      : `File size increased by ${Math.abs(savedPercent).toFixed(1)}%.`;
+  elements.originalSize.textContent = `Original ${getFileFormat(sourceFile)}: ${formatFileSize(sourceFile.size)}.`;
+  elements.webpSize.textContent = `Converted WebP: ${formatFileSize(webpBlob.size)}.`;
 
-  elements.originalSize.textContent =
-    `Original ${getFileFormat(sourceFile)} size: ${formatFileSize(sourceFile.size)}.`;
-  elements.webpSize.textContent = `WebP size: ${formatFileSize(webpBlob.size)}.`;
+  const savedPercent = ((sourceFile.size - webpBlob.size) / sourceFile.size) * 100;
+  const sizeChange = savedPercent >= 0 ? `Size reduction: ${savedPercent.toFixed(1)}%.` : `Size increased ${Math.abs(savedPercent).toFixed(1)}%.`;
+
   elements.sizeChange.textContent = sizeChange;
+  elements.sizeChange.className = savedPercent >= 0 ? "sizeReduced" : "sizeIncreased";
 }
 
 function convertImage() {
