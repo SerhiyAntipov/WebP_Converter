@@ -5,6 +5,8 @@ const elements = {
   imageComparison: document.getElementById("imageComparison"),
   converterPanel: document.querySelector(".converterPanel"),
   comparisonSlider: document.getElementById("comparisonSlider"),
+  comparisonScale: document.getElementById("comparisonScale"),
+  comparisonScaleValue: document.getElementById("comparisonScaleValue"),
   qualitySlider: document.getElementById("qualitySlider"),
   qualityValue: document.getElementById("qualityValue"),
   qualityControl: document.querySelector(".qualityControl"),
@@ -48,6 +50,32 @@ function updateComparison() {
     "aria-valuetext",
     `Divider at ${position}% of the image width`,
   );
+}
+
+function updateComparisonScale() {
+  const imageWidth = elements.originalImage.naturalWidth;
+  const imageHeight = elements.originalImage.naturalHeight;
+  const comparisonRect = elements.imageComparison.getBoundingClientRect();
+
+  if (!imageWidth || !imageHeight || !comparisonRect.width || !comparisonRect.height) {
+    return;
+  }
+
+  const widthScale = comparisonRect.width / imageWidth;
+  const heightScale = comparisonRect.height / imageHeight;
+  const coverScale = Math.max(widthScale, heightScale);
+  const containScale = Math.min(widthScale, heightScale);
+  const minimumPercent = Math.ceil((containScale / coverScale) * 100);
+
+  elements.comparisonScale.min = String(minimumPercent);
+  if (Number(elements.comparisonScale.value) < minimumPercent) {
+    elements.comparisonScale.value = String(minimumPercent);
+  }
+
+  const scalePercent = Number(elements.comparisonScale.value);
+  elements.comparisonScaleValue.textContent = String(scalePercent);
+  const zoom = (coverScale / containScale) * (scalePercent / 100);
+  elements.imageComparison.style.setProperty("--zoom", String(zoom));
 }
 
 function syncQualityWidth() {
@@ -129,6 +157,7 @@ function loadImageFile(file) {
 
   elements.originalImage.onload = () => {
     syncQualityWidth();
+    updateComparisonScale();
   };
   elements.originalImage.src = originalImageUrl;
 
@@ -174,12 +203,16 @@ elements.imageInput.addEventListener("change", () => {
 });
 
 elements.comparisonSlider.addEventListener("input", updateComparison);
+elements.comparisonScale.addEventListener("input", updateComparisonScale);
 elements.qualitySlider.addEventListener("input", () => {
   elements.qualityValue.textContent = elements.qualitySlider.value;
   convertImage();
 });
 
-new ResizeObserver(syncQualityWidth).observe(elements.imageComparison);
+new ResizeObserver(() => {
+  syncQualityWidth();
+  updateComparisonScale();
+}).observe(elements.imageComparison);
 window.addEventListener("beforeunload", revokeImageUrls);
 
 loadSampleImage();

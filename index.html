@@ -14,7 +14,9 @@
     <h1>WebP CONVERTER</h1>
     <div id="imageComparison" class="imageComparison">
       <img id="originalImage" class="comparisonImage" alt="Original image" />
-      <img id="convertedImage" class="comparisonImage comparisonImageConverted" alt="Image converted to WebP" />
+      <div class="comparisonAfter">
+        <img id="convertedImage" class="comparisonImage comparisonImageConverted" alt="Image converted to WebP" />
+      </div>
       <span class="comparisonLabel comparisonLabelBefore">Before</span>
       <span class="comparisonLabel comparisonLabelAfter">After</span>
       <span class="comparisonDivider" aria-hidden="true"><span></span></span>
@@ -26,6 +28,12 @@
       <div id="converterControls">
         <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" />
         <label for="imageInput" id="uploadButton">Choose Image</label>
+
+        <div class="scaleControl">
+          <input type="range" id="comparisonScale" min="100" max="300" value="100" step="1"
+            aria-label="Image zoom" aria-controls="imageComparison" />
+          <label for="comparisonScale">Zoom: <span id="comparisonScaleValue">100</span>%</label>
+        </div>
 
         <div class="qualityControl">
           <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
