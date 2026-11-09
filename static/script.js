@@ -3,6 +3,7 @@ const elements = {
   originalImage: document.getElementById("originalImage"),
   convertedImage: document.getElementById("convertedImage"),
   imageComparison: document.getElementById("imageComparison"),
+  converterPanel: document.querySelector(".converterPanel"),
   comparisonSlider: document.getElementById("comparisonSlider"),
   qualitySlider: document.getElementById("qualitySlider"),
   qualityValue: document.getElementById("qualityValue"),
@@ -50,7 +51,9 @@ function updateComparison() {
 }
 
 function syncQualityWidth() {
-  elements.qualityControl.style.width = `${elements.imageComparison.getBoundingClientRect().width}px`;
+  const imageWidth = elements.imageComparison.getBoundingClientRect().width;
+  const panelWidth = elements.converterPanel.getBoundingClientRect().width;
+  elements.qualityControl.style.width = `${Math.min(imageWidth, panelWidth)}px`;
 }
 
 function formatFileSize(bytes) {
@@ -125,8 +128,6 @@ function loadImageFile(file) {
   elements.imageComparison.hidden = false;
 
   elements.originalImage.onload = () => {
-    elements.imageComparison.style.aspectRatio =
-      `${elements.originalImage.naturalWidth} / ${elements.originalImage.naturalHeight}`;
     syncQualityWidth();
   };
   elements.originalImage.src = originalImageUrl;
