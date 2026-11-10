@@ -6,13 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WebP Converter</title>
 
+  <link rel="icon" href="./favicon/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="./favicon/site.webmanifest" />
+  <meta name="theme-color" content="#ffffff" />
+
   <link rel="stylesheet" href="./static/style.css" />
 </head>
 
 <body>
-  <main>
+  <header>
     <h1>WebP CONVERTER</h1>
-    <div id="imageComparison" class="imageComparison">
+  </header>
+  <main>
+    <div id="imageComparison">
       <img id="originalImage" class="comparisonImage" alt="Original image" />
       <div class="comparisonAfter">
         <img id="convertedImage" class="comparisonImage comparisonImageConverted" alt="Image converted to WebP" />
@@ -24,30 +33,33 @@
         aria-label="Compare image before and after conversion" aria-controls="imageComparison"
         aria-valuetext="Divider at 50% of the image width" />
     </div>
-    <div class="converterPanel">
-      <div id="converterControls">
-        <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" />
-        <label for="imageInput" id="uploadButton">Choose Image</label>
 
-        <div class="scaleControl">
-          <input type="range" id="comparisonScale" min="100" max="300" value="100" step="1"
-            aria-label="Image zoom" aria-controls="imageComparison" />
+    <div id="converterControls">
+      <div id="rangeControls">
+        <div id="scaleControl">
+          <input type="range" id="comparisonScale" min="100" max="300" value="100" step="1" aria-label="Image zoom"
+            aria-controls="imageComparison" />
           <label for="comparisonScale">Zoom: <span id="comparisonScaleValue">100</span>%</label>
         </div>
-
-        <div class="qualityControl">
+        <div id="qualityControl">
           <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
           <label for="qualitySlider">Quality: <span id="qualityValue">80</span>%</label>
         </div>
-        <a id="downloadLink" hidden download="converted.webp">Download WebP</a>
       </div>
-      <div id="conversionResults">
-        <p id="originalSize"></p>
-        <p id="webpSize"></p>
-        <p id="sizeChange"></p>
+      <div id="actionControls">
+        <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" />
+        <label for="imageInput" id="uploadButton">Choose Image</label>
+        <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">Download WebP</a>
       </div>
     </div>
   </main>
+  <footer>
+    <ul id="conversionInfo">
+      <li id="originalSize"></li>
+      <li id="webpSize"></li>
+      <li id="sizeChange"></li>
+    </ul>
+  </footer>
   <script src="./static/script.js"></script>
 </body>
 

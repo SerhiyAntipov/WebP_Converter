@@ -3,14 +3,12 @@ const elements = {
   originalImage: document.getElementById("originalImage"),
   convertedImage: document.getElementById("convertedImage"),
   imageComparison: document.getElementById("imageComparison"),
-  converterPanel: document.querySelector(".converterPanel"),
   comparisonSlider: document.getElementById("comparisonSlider"),
   comparisonScale: document.getElementById("comparisonScale"),
   comparisonScaleValue: document.getElementById("comparisonScaleValue"),
   qualitySlider: document.getElementById("qualitySlider"),
   qualityValue: document.getElementById("qualityValue"),
-  qualityControl: document.querySelector(".qualityControl"),
-  downloadLink: document.getElementById("downloadLink"),
+  downloadButton: document.getElementById("downloadButton"),
   originalSize: document.getElementById("originalSize"),
   webpSize: document.getElementById("webpSize"),
   sizeChange: document.getElementById("sizeChange"),
@@ -78,12 +76,6 @@ function updateComparisonScale() {
   elements.imageComparison.style.setProperty("--zoom", String(zoom));
 }
 
-function syncQualityWidth() {
-  const imageWidth = elements.imageComparison.getBoundingClientRect().width;
-  const panelWidth = elements.converterPanel.getBoundingClientRect().width;
-  elements.qualityControl.style.width = `${Math.min(imageWidth, panelWidth)}px`;
-}
-
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -103,10 +95,11 @@ function updateConversionResults(sourceFile, webpBlob) {
   elements.webpSize.textContent = `Converted WebP: ${formatFileSize(webpBlob.size)}.`;
 
   const savedPercent = ((sourceFile.size - webpBlob.size) / sourceFile.size) * 100;
-  const sizeChange = savedPercent >= 0 ? `Size reduction: ${savedPercent.toFixed(1)}%.` : `Size increased ${Math.abs(savedPercent).toFixed(1)}%.`;
+  const sizeChange = savedPercent >= 0
+    ? `Size reduction: ${savedPercent.toFixed(1)}%.`
+    : `Size increased ${Math.abs(savedPercent).toFixed(1)}%.`;
 
   elements.sizeChange.textContent = sizeChange;
-  elements.sizeChange.className = savedPercent >= 0 ? "sizeReduced" : "sizeIncreased";
 }
 
 function convertImage() {
@@ -135,8 +128,8 @@ function convertImage() {
       if (convertedImageUrl) URL.revokeObjectURL(convertedImageUrl);
       convertedImageUrl = URL.createObjectURL(blob);
       elements.convertedImage.src = convertedImageUrl;
-      elements.downloadLink.href = convertedImageUrl;
-      elements.downloadLink.hidden = false;
+      elements.downloadButton.href = convertedImageUrl;
+      elements.downloadButton.setAttribute("aria-disabled", "false");
       updateConversionResults(sourceFile, blob);
     }, "image/webp", Number(elements.qualitySlider.value) / 100);
   };
@@ -151,12 +144,12 @@ function loadImageFile(file) {
   selectedImage = file;
 
   elements.convertedImage.removeAttribute("src");
-  elements.downloadLink.hidden = true;
+  elements.downloadButton.href = "#";
+  elements.downloadButton.setAttribute("aria-disabled", "true");
   clearResults();
   elements.imageComparison.hidden = false;
 
   elements.originalImage.onload = () => {
-    syncQualityWidth();
     updateComparisonScale();
   };
   elements.originalImage.src = originalImageUrl;
@@ -204,15 +197,17 @@ elements.imageInput.addEventListener("change", () => {
 
 elements.comparisonSlider.addEventListener("input", updateComparison);
 elements.comparisonScale.addEventListener("input", updateComparisonScale);
+elements.downloadButton.addEventListener("click", (event) => {
+  if (elements.downloadButton.getAttribute("aria-disabled") === "true") {
+    event.preventDefault();
+  }
+});
 elements.qualitySlider.addEventListener("input", () => {
   elements.qualityValue.textContent = elements.qualitySlider.value;
   convertImage();
 });
 
-new ResizeObserver(() => {
-  syncQualityWidth();
-  updateComparisonScale();
-}).observe(elements.imageComparison);
+new ResizeObserver(updateComparisonScale).observe(elements.imageComparison);
 window.addEventListener("beforeunload", revokeImageUrls);
 
 loadSampleImage();
