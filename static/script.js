@@ -35,6 +35,7 @@ let activeImage = null;
 let sampleImageEntry = null;
 let conversionRequest = 0;
 let sampleImageRequest = 0;
+let qualityConversionTimer = null;
 
 function clearResults() {
   elements.originalSize.textContent = "";
@@ -43,15 +44,15 @@ function clearResults() {
   elements.sizeChange.classList.remove("sizeIncreased");
 }
 
+function releaseImageEntry(entry) {
+  if (entry.originalUrl) URL.revokeObjectURL(entry.originalUrl);
+  if (entry.convertedUrl) URL.revokeObjectURL(entry.convertedUrl);
+  entry.originalUrl = null;
+  entry.convertedUrl = null;
+}
+
 function revokeImageUrls() {
-  images.forEach(({ originalUrl, convertedUrl }) => {
-    URL.revokeObjectURL(originalUrl);
-    if (convertedUrl) URL.revokeObjectURL(convertedUrl);
-  });
-  if (sampleImageEntry) {
-    URL.revokeObjectURL(sampleImageEntry.originalUrl);
-    if (sampleImageEntry.convertedUrl) URL.revokeObjectURL(sampleImageEntry.convertedUrl);
-  }
+  [...images, ...(sampleImageEntry ? [sampleImageEntry] : [])].forEach(releaseImageEntry);
 }
 
 function updateComparison() {
@@ -67,23 +68,29 @@ function updateRangeTrack(input) {
   const min = Number(input.min) || 0;
   const max = Number(input.max) || 100;
   const value = Number(input.value);
-  const progress = ((value - min) / (max - min)) * 100;
+  const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
   input.style.setProperty("--range-progress", `${progress}%`);
 }
 
-function updateComparisonScale() {
+function getFitZoom() {
   const imageWidth = elements.originalImage.naturalWidth;
   const imageHeight = elements.originalImage.naturalHeight;
   const comparisonRect = elements.imageComparison.getBoundingClientRect();
 
   if (!imageWidth || !imageHeight || !comparisonRect.width || !comparisonRect.height) {
-    return;
+    return null;
   }
 
-  const fitZoom = Math.min(
+  return Math.min(
     (comparisonRect.width / imageWidth) * 100,
     (comparisonRect.height / imageHeight) * 100,
   );
+}
+
+function updateComparisonScale() {
+  const fitZoom = getFitZoom();
+  if (!fitZoom) return;
+
   const scalePercent = Number(elements.comparisonScale.value);
   updateRangeTrack(elements.comparisonScale);
   elements.comparisonScaleValue.textContent = String(scalePercent);
@@ -91,17 +98,12 @@ function updateComparisonScale() {
 }
 
 function setInitialComparisonScale() {
-  const imageWidth = elements.originalImage.naturalWidth;
-  const imageHeight = elements.originalImage.naturalHeight;
-  const comparisonRect = elements.imageComparison.getBoundingClientRect();
-  if (!imageWidth || !imageHeight || !comparisonRect.width || !comparisonRect.height) return;
+  const fitZoom = getFitZoom();
+  if (!fitZoom) return;
 
-  const fitZoom = Math.min(
-    (comparisonRect.width / imageWidth) * 100,
-    (comparisonRect.height / imageHeight) * 100,
-  );
-  const initialZoom = Math.max(0.1, Math.min(300, Math.round(fitZoom * 10) / 10));
+  const initialZoom = Math.max(0.1, Math.round(fitZoom * 10) / 10);
   elements.comparisonScale.min = String(initialZoom);
+  elements.comparisonScale.max = String(Math.max(300, Math.ceil(initialZoom * 3)));
   elements.comparisonScale.value = String(initialZoom);
   updateComparisonScale();
 }
@@ -199,14 +201,17 @@ function updateImageCount(message = "") {
 
 async function downloadAllImages() {
   const quality = Number(elements.qualitySlider.value) / 100;
-  const converted = await Promise.all(images.map(async (entry) => {
+  const converted = [];
+
+  for (const entry of images) {
     if (entry.convertedUrl && entry.convertedQuality === quality) {
-      return { entry, url: entry.convertedUrl, temporary: false };
+      converted.push({ entry, url: entry.convertedUrl, temporary: false });
+      continue;
     }
 
     const blob = await convertToWebp(entry.originalUrl, quality);
-    return { entry, url: URL.createObjectURL(blob), temporary: true };
-  }));
+    converted.push({ entry, url: URL.createObjectURL(blob), temporary: true });
+  }
 
   converted.forEach(({ entry, url, temporary }, index) => {
     window.setTimeout(() => {
@@ -236,6 +241,8 @@ function renderImageList() {
     button.setAttribute("aria-pressed", String(entry === activeImage));
     thumbnail.src = entry.originalUrl;
     thumbnail.alt = "";
+    thumbnail.loading = "lazy";
+    thumbnail.decoding = "async";
     name.textContent = entry.file.name;
     button.append(thumbnail, name);
     button.addEventListener("click", () => selectImage(entry));
@@ -255,8 +262,7 @@ function deleteImage(entry) {
   if (index < 0) return;
 
   const wasActive = activeImage === entry;
-  URL.revokeObjectURL(entry.originalUrl);
-  if (entry.convertedUrl) URL.revokeObjectURL(entry.convertedUrl);
+  releaseImageEntry(entry);
   images.splice(index, 1);
   updateImageCount();
   updateDownloadButtonLabel();
@@ -276,6 +282,8 @@ function deleteImage(entry) {
 }
 
 function selectImage(entry, focusSidebar = false) {
+  window.clearTimeout(qualityConversionTimer);
+  qualityConversionTimer = null;
   activeImage = entry;
   elements.sampleImageNotice.hidden = entry === sampleImageEntry ? false : true;
   conversionRequest += 1;
@@ -324,11 +332,10 @@ function loadImageFiles(files, focusFirst = false) {
 }
 
 function clearImages() {
+  window.clearTimeout(qualityConversionTimer);
+  qualityConversionTimer = null;
   conversionRequest += 1;
-  images.forEach(({ originalUrl, convertedUrl }) => {
-    URL.revokeObjectURL(originalUrl);
-    if (convertedUrl) URL.revokeObjectURL(convertedUrl);
-  });
+  images.forEach(releaseImageEntry);
   images.length = 0;
   updateImageCount();
   activeImage = null;
@@ -341,6 +348,8 @@ function clearImages() {
   elements.downloadButton.setAttribute("aria-disabled", "true");
   clearResults();
   elements.comparisonScale.value = "100";
+  elements.comparisonScale.min = "0.1";
+  elements.comparisonScale.max = "300";
   elements.comparisonScaleValue.textContent = "100";
   elements.imageComparison.style.setProperty("--zoom", "1");
   elements.clearImagesButton.disabled = true;
@@ -407,7 +416,13 @@ elements.downloadButton.addEventListener("click", (event) => {
 elements.qualitySlider.addEventListener("input", () => {
   elements.qualityValue.textContent = elements.qualitySlider.value;
   updateRangeTrack(elements.qualitySlider);
-  convertImage();
+  conversionRequest += 1;
+  elements.downloadButton.setAttribute("aria-disabled", "true");
+  window.clearTimeout(qualityConversionTimer);
+  qualityConversionTimer = window.setTimeout(() => {
+    qualityConversionTimer = null;
+    convertImage();
+  }, 140);
 });
 
 new ResizeObserver(updateComparisonScale).observe(elements.imageComparison);

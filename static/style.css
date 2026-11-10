@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-family:
     system-ui,
     -apple-system,
@@ -10,14 +10,9 @@
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
   --page-padding: clamp(12px, 2.5vw, 28px);
-  --control-border: #527982;
   --accent: #29b9c5;
-  --hidden: #fe7070;
-  --panel: #1c2b32;
-  --panel-raised: #253941;
   --text: #e8f0f1;
   --muted: #a8c3c7;
-  --cyan: #29c6d0;
 }
 
 * {
@@ -55,6 +50,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   margin: 0 0 12px calc(25% + 14px);
 }
 
@@ -194,10 +190,15 @@ main {
   cursor: pointer;
 }
 
-.imageThumbnail:hover,
+.imageThumbnail:hover:not([aria-pressed="true"]) {
+  border-color: #77999e;
+  background: #2b444b;
+}
+
 .imageThumbnail[aria-pressed="true"] {
   border-color: #45c5ce;
   background: #36bdc21c;
+  box-shadow: inset 3px 0 #45c5ce;
 }
 
 .imageThumbnail img {
@@ -400,7 +401,11 @@ main {
   touch-action: pan-y;
 }
 
-.comparisonSlider::-webkit-slider-runnable-track,
+.comparisonSlider::-webkit-slider-runnable-track {
+  height: 100%;
+  background: transparent;
+}
+
 .comparisonSlider::-moz-range-track {
   height: 100%;
   background: transparent;
@@ -426,13 +431,17 @@ main {
   outline-offset: -3px;
 }
 
+#converterControls {
+  width: 100%;
+}
+
 #rangeControls {
   display: flex;
   flex-direction: row;
   justify-content: center;
   gap: 10px;
-  width: min(100%, 1280px);
-  margin: 10px auto;
+  width: 100%;
+  margin: 10px 0;
 }
 
 #scaleControl,
@@ -547,10 +556,11 @@ main {
   min-width: 155px;
   margin: 0;
   border: 1px solid #4f7b83;
-  padding: 8px 10px;
+  min-height: 46px;
+  padding: 12px 14px;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.2;
   color: #d7f1ef;
@@ -602,9 +612,10 @@ main {
   border-radius: 8px;
   padding: 8px 11px;
   color: #e3ffff;
-  background: #173740;
+  background: #707070;
   box-shadow: 0 4px 14px #0008;
   font-size: 0.78rem;
+  font-weight: bold;
   line-height: 1.3;
   text-align: center;
   transform: translateX(-50%);
@@ -619,7 +630,7 @@ main {
   height: 8px;
   border-right: 1px solid #55cbd0;
   border-bottom: 1px solid #55cbd0;
-  background: #173740;
+  background: #707070;
   content: "";
   transform: translate(-50%, -50%) rotate(45deg);
 }
@@ -649,61 +660,41 @@ main {
   background: linear-gradient(145deg, #66e2df, #31c9cf);
 }
 
-footer {
+#converterInfo {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
-  gap: 14px;
-  min-height: 4.5em;
-  margin-top: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  min-height: 46px;
+  line-height: 1.35;
   border: 1px solid #55757b;
   border-radius: 11px;
-  padding: 8px 0;
+  padding: 5px;
+  margin: 0;
+  color: #c9e2e4;
   background: linear-gradient(145deg, #22343b, #18262c);
   box-shadow: inset 0 1px #ffffff0c, 0 8px 24px #0003;
 }
 
-.underSidebarColumn {
-  flex: 0 0 25%;
+#converterInfo p {
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
-}
-
-.underSidebarWorkspace {
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  min-width: 0;
-  padding: 5px;
-}
-
-#conversionInfo {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 0;
-  line-height: 1.35;
-  list-style: none;
-  padding: 0;
   margin: 0;
-  color: #c9e2e4;
-}
-
-#conversionInfo li {
-  flex: 1 1 0;
-  max-width: 220px;
-  min-width: 0;
   border: none;
   border-radius: 0;
   padding: 5px;
   color: #d7f1ef;
-  background: linear-gradient(145deg, #29434b, #20363d);
   font-size: 0.8rem;
   font-weight: 600;
+  text-align: center;
 }
 
-#conversionInfo li:empty {
+#converterInfo p:empty {
   display: none;
 }
 
@@ -721,19 +712,13 @@ footer {
     margin-left: 0;
   }
 
-  footer {
-    gap: 0;
-  }
-
-  .underSidebarColumn {
-    display: none;
-  }
-
-  #conversionInfo {
+  #converterInfo {
+    height: auto;
+    min-height: 46px;
     gap: 5px;
   }
 
-  #conversionInfo li {
+  #converterInfo p {
     padding: 6px;
     font-size: 0.72rem;
   }
@@ -818,8 +803,6 @@ footer {
   }
 
   h1 {
-    margin-left: 0;
-    margin-bottom: 6px;
     font-size: 1rem;
   }
 
