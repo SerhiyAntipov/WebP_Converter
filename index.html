@@ -1,86 +1,126 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebP Converter</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WebP Converter</title>
+    <!-- Browser and device icons -->
+    <link rel="icon" href="./favicon/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="./favicon/site.webmanifest" />
+    <meta name="theme-color" content="#ffffff" />
 
-  <link rel="icon" href="./favicon/favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
-  <link rel="manifest" href="./favicon/site.webmanifest" />
-  <meta name="theme-color" content="#ffffff" />
+    <link rel="stylesheet" href="./static/style.css" />
+    <script src="./static/script.js" defer></script>
+  </head>
 
-  <link rel="stylesheet" href="./static/style.css" />
-</head>
-
-<body>
-  <header>
-    <div id="brand">
-      <h1>
-        <span>WebP</span>
-        <img src="./favicon/android-chrome-192x192.png" alt="" />
-        <span>CONVERTER</span>
-      </h1>
-    </div>
-  </header>
-  <main>
-    <div id="sidebarColumn">
-      <aside id="imageSidebar" aria-label="Uploaded images">
-        <div class="imageListHeading">
-          <h2>Images</h2>
-          <span id="imageCount">0 / 10 max</span>
-        </div>
-        <p id="imageListStatus" role="status" aria-live="polite" hidden></p>
-        <ul id="imageList" aria-live="polite"></ul>
-      </aside>
-      <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" multiple />
-      <div id="uploadControl">
-        <span id="uploadTooltip" role="status" hidden>Choose an image to get started.</span>
-        <label for="imageInput" id="uploadButton">Choose Images</label>
+  <body>
+    <header>
+      <div id="brand">
+        <h1>
+          <span>WebP</span>
+          <img src="./favicon/android-chrome-192x192.png" alt="" />
+          <span>CONVERTER</span>
+        </h1>
       </div>
-      <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">Download WebP</a>
-      <button type="button" id="clearImagesButton" disabled>Clear all</button>
-    </div>
-    <section id="workspace">
-      <div id="imageComparison">
-        <img id="originalImage" class="comparisonImage" alt="Original image" />
-        <div class="comparisonAfter">
-          <img id="convertedImage" class="comparisonImage comparisonImageConverted" alt="Image converted to WebP" />
-        </div>
-        <span class="comparisonLabel comparisonLabelBefore">Before</span>
-        <span class="comparisonLabel comparisonLabelAfter">After</span>
-        <span id="sampleImageNotice" hidden>Sample image</span>
-        <span class="comparisonDivider" aria-hidden="true"><span></span></span>
-        <input type="range" id="comparisonSlider" class="comparisonSlider" min="0" max="100" value="50"
-          aria-label="Compare image before and after conversion" aria-controls="imageComparison"
-          aria-valuetext="Divider at 50% of the image width" />
-      </div>
+    </header>
 
-      <div id="converterControls">
-        <div id="rangeControls">
-
-          <div id="qualityControl">
-            <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
-            <label for="qualitySlider">Quality: <span id="qualityValue">80</span>%</label>
+    <main>
+      <!-- File list and actions -->
+      <div id="sidebarColumn">
+        <aside id="imageSidebar" aria-label="Uploaded images">
+          <div class="imageListHeading">
+            <h2>Images</h2>
+            <span id="imageCount">0 / 10 max</span>
           </div>
-          <div id="scaleControl">
-            <input type="range" id="comparisonScale" min="0.1" max="300" value="100" step="0.1" aria-label="Image zoom"
-              aria-controls="imageComparison" />
-            <label for="comparisonScale">Zoom: <span id="comparisonScaleValue">100</span>%</label>
+          <p id="imageListStatus" role="status" aria-live="polite" hidden></p>
+          <ul id="imageList" aria-live="polite"></ul>
+        </aside>
+
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/*"
+          class="visuallyHidden"
+          multiple
+        />
+        <div id="uploadControl">
+          <span id="uploadTooltip" role="status" hidden>
+            Choose an image to get started.
+          </span>
+          <label for="imageInput" id="uploadButton">Choose Images</label>
+        </div>
+        <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">
+          Download WebP
+        </a>
+        <button type="button" id="clearImagesButton" disabled>Clear all</button>
+      </div>
+
+      <!-- Image comparison and conversion controls -->
+      <section id="workspace" aria-label="Image converter">
+        <div id="imageComparison">
+          <img id="originalImage" class="comparisonImage" alt="Original image" />
+          <div class="comparisonAfter">
+            <img
+              id="convertedImage"
+              class="comparisonImage comparisonImageConverted"
+              alt="Image converted to WebP"
+            />
+          </div>
+
+          <span class="comparisonLabel comparisonLabelBefore">Before</span>
+          <span class="comparisonLabel comparisonLabelAfter">After</span>
+          <span id="sampleImageNotice" hidden>Sample image</span>
+          <span class="comparisonDivider" aria-hidden="true"><span></span></span>
+          <input
+            type="range"
+            id="comparisonSlider"
+            class="comparisonSlider"
+            min="0"
+            max="100"
+            value="50"
+            aria-label="Compare image before and after conversion"
+            aria-controls="imageComparison"
+            aria-valuetext="Divider at 50% of the image width"
+          />
+        </div>
+
+        <div id="converterControls">
+          <div id="rangeControls">
+            <div id="qualityControl">
+              <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
+              <label for="qualitySlider">
+                Quality: <span id="qualityValue">80</span>%
+              </label>
+            </div>
+
+            <div id="scaleControl">
+              <input
+                type="range"
+                id="comparisonScale"
+                min="0.1"
+                max="300"
+                value="100"
+                step="0.1"
+                aria-label="Image zoom"
+                aria-controls="imageComparison"
+              />
+              <label for="comparisonScale">
+                Zoom: <span id="comparisonScaleValue">100</span>%
+              </label>
+            </div>
           </div>
         </div>
-      </div>
-      <div id="converterInfo">
-        <p id="originalSize"></p>
-        <p id="webpSize"></p>
-        <p id="sizeChange"></p>
-      </div>
-    </section>
-  </main>
-  <script src="./static/script.js"></script>
-</body>
 
+        <div id="converterInfo" aria-live="polite">
+          <p id="originalSize"></p>
+          <p id="webpSize"></p>
+          <p id="sizeChange"></p>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
