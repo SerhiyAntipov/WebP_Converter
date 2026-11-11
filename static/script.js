@@ -93,7 +93,7 @@ function updateRangeFill(slider) {
   const value = Number(slider.value);
   const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
 
-  slider.style.setProperty("--range-progress", `${progress}%`);
+  slider.style.setProperty("--range-progress", `${Math.round(progress)}%`);
 }
 
 function updateComparisonPosition() {
@@ -132,7 +132,7 @@ function updateZoom() {
   const zoomPercent = Number(elements.zoomSlider.value);
   const imageScale = zoomPercent / fitZoom;
 
-  elements.zoomValue.textContent = String(zoomPercent);
+  elements.zoomValue.textContent = String(Math.round(zoomPercent));
   elements.imageComparison.style.setProperty("--zoom", String(imageScale));
   updateRangeFill(elements.zoomSlider);
 }
@@ -147,7 +147,7 @@ function setStartingZoom() {
 
   elements.zoomSlider.min = String(startingZoom);
   elements.zoomSlider.max = String(maximumZoom);
-  elements.zoomSlider.value = String(startingZoom);
+  elements.zoomSlider.value = String(Math.round(startingZoom));
   updateZoom();
 }
 
