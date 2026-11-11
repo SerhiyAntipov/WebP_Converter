@@ -91,6 +91,15 @@ function updateDownloadButton() {
     state.images.length > 1 ? "Download all WebP" : "Download WebP";
 }
 
+function createImageEntry(file) {
+  return {
+    file,
+    originalUrl: URL.createObjectURL(file),
+    convertedUrl: null,
+    convertedQuality: null,
+  };
+}
+
 function hideUploadTooltip() {
   elements.uploadTooltip.hidden = true;
 }
@@ -376,6 +385,15 @@ function renderImageList() {
   });
 }
 
+function updateImageSelectionState() {
+  elements.imageList.querySelectorAll(".imageThumbnail").forEach((button, index) => {
+    button.setAttribute(
+      "aria-pressed",
+      String(state.images[index] === state.activeImage),
+    );
+  });
+}
+
 function selectImage(imageEntry, moveFocusToList = false) {
   if (imageEntry === state.activeImage) return;
 
@@ -392,9 +410,7 @@ function selectImage(imageEntry, moveFocusToList = false) {
   elements.imageComparison.hidden = false;
   elements.originalImage.onload = setStartingZoom;
   clearConversionInfo();
-  elements.imageList.querySelectorAll(".imageThumbnail").forEach((button, index) => {
-    button.setAttribute("aria-pressed", String(state.images[index] === imageEntry));
-  });
+  updateImageSelectionState();
   updateComparisonPosition();
 
   const selectedThumbnail = elements.imageList.querySelector(
@@ -426,12 +442,7 @@ function loadImageFiles(files, moveFocusToList = false) {
     return;
   }
 
-  const newImages = acceptedFiles.map((file) => ({
-    file,
-    originalUrl: URL.createObjectURL(file),
-    convertedUrl: null,
-    convertedQuality: null,
-  }));
+  const newImages = acceptedFiles.map(createImageEntry);
 
   // Add new files after the active user image. The sample is not in this list.
   const activeIndex = state.images.indexOf(state.activeImage);
@@ -525,12 +536,7 @@ async function loadSampleImage() {
       blob.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
     const file = new File([blob], fileName, { type: fileType });
 
-    state.sampleImage = {
-      file,
-      originalUrl: URL.createObjectURL(file),
-      convertedUrl: null,
-      convertedQuality: null,
-    };
+    state.sampleImage = createImageEntry(file);
 
     selectImage(state.sampleImage);
   } catch {

@@ -74,7 +74,6 @@ body {
   min-width: 320px;
   width: 100%;
   margin: 0 auto;
-  /* padding: var(--body-padding); */
   color: var(--text);
   text-align: center;
   background: linear-gradient(to bottom,
@@ -784,7 +783,7 @@ main {
   line-height: 1;
   margin: 0;
   padding: 0 4px;
-  
+
   border-radius: var(--radius-md);
   border: var(--size-border-1) solid var(--color-border);
 }
