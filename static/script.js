@@ -43,6 +43,7 @@ const state = {
   conversionId: 0,
   sampleRequestId: 0,
   qualityTimer: null,
+  imageListStatusTimer: null,
 };
 
 // -----------------------------------------------------------------------------
@@ -72,15 +73,22 @@ function clearConversionInfo() {
 }
 
 function updateImageCount(message = "") {
+  window.clearTimeout(state.imageListStatusTimer);
   elements.imageCount.textContent = `${state.images.length} / ${MAX_IMAGES} max`;
   elements.imageListStatus.textContent = message;
   elements.imageListStatus.hidden = !message;
+
+  if (message) {
+    state.imageListStatusTimer = window.setTimeout(() => {
+      elements.imageListStatus.hidden = true;
+      state.imageListStatusTimer = null;
+    }, 3000);
+  }
 }
 
 function updateDownloadButton() {
-  elements.downloadButton.textContent = state.images.length > 1
-    ? "Download all WebP"
-    : "Download WebP";
+  elements.downloadButton.textContent =
+    state.images.length > 1 ? "Download all WebP" : "Download WebP";
 }
 
 function hideUploadTooltip() {
@@ -110,27 +118,30 @@ function updateComparisonPosition() {
 // Zoom controls
 // -----------------------------------------------------------------------------
 
-function getImageFitZoom() {
+function getImageZoomRange() {
   const imageWidth = elements.originalImage.naturalWidth;
   const imageHeight = elements.originalImage.naturalHeight;
-  const comparisonSize = elements.imageComparison.getBoundingClientRect();
+  const comparisonWidth = elements.imageComparison.clientWidth;
+  const comparisonHeight = elements.imageComparison.clientHeight;
 
-  if (!imageWidth || !imageHeight || !comparisonSize.width || !comparisonSize.height) {
+  if (!imageWidth || !imageHeight || !comparisonWidth || !comparisonHeight) {
     return null;
   }
 
-  const widthZoom = (comparisonSize.width / imageWidth) * 100;
-  const heightZoom = (comparisonSize.height / imageHeight) * 100;
-
-  return Math.min(widthZoom, heightZoom);
+  const widthZoom = (comparisonWidth / imageWidth) * 100;
+  const heightZoom = (comparisonHeight / imageHeight) * 100;
+  return {
+    contain: Math.min(widthZoom, heightZoom),
+    cover: Math.max(widthZoom, heightZoom),
+  };
 }
 
 function updateZoom() {
-  const fitZoom = getImageFitZoom();
-  if (!fitZoom) return;
+  const zoomRange = getImageZoomRange();
+  if (!zoomRange) return;
 
   const zoomPercent = Number(elements.zoomSlider.value);
-  const imageScale = zoomPercent / fitZoom;
+  const imageScale = zoomPercent / zoomRange.contain;
 
   elements.zoomValue.textContent = String(Math.round(zoomPercent));
   elements.imageComparison.style.setProperty("--zoom", String(imageScale));
@@ -138,16 +149,20 @@ function updateZoom() {
 }
 
 function setStartingZoom() {
-  const fitZoom = getImageFitZoom();
-  if (!fitZoom) return;
+  const zoomRange = getImageZoomRange();
+  if (!zoomRange) return;
 
-  // Zoom starts at the size needed to fit the image inside the comparison area.
-  const startingZoom = Math.max(0.1, Math.round(fitZoom * 10) / 10);
+  // Start at cover zoom, while allowing the user to zoom out to contain.
+  const minimumZoom = Math.max(0.1, Math.round(zoomRange.contain * 10) / 10);
+  const startingZoom = Math.max(
+    minimumZoom,
+    Math.round(zoomRange.cover * 10) / 10,
+  );
   const maximumZoom = Math.max(300, Math.ceil(startingZoom * 3));
 
-  elements.zoomSlider.min = String(startingZoom);
+  elements.zoomSlider.min = String(minimumZoom);
   elements.zoomSlider.max = String(maximumZoom);
-  elements.zoomSlider.value = String(Math.round(startingZoom));
+  elements.zoomSlider.value = String(startingZoom);
   updateZoom();
 }
 
@@ -172,14 +187,18 @@ function convertImageToWebP(imageUrl, quality) {
       }
 
       context.drawImage(image, 0, 0);
-      canvas.toBlob((blob) => {
-        if (!blob || blob.type !== "image/webp") {
-          reject(new Error("The browser could not create a WebP image."));
-          return;
-        }
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.type !== "image/webp") {
+            reject(new Error("The browser could not create a WebP image."));
+            return;
+          }
 
-        resolve(blob);
-      }, "image/webp", quality);
+          resolve(blob);
+        },
+        "image/webp",
+        quality,
+      );
     };
 
     image.src = imageUrl;
@@ -187,11 +206,11 @@ function convertImageToWebP(imageUrl, quality) {
 }
 
 function showConversionInfo(sourceFile, webpBlob) {
-  elements.originalSize.textContent =
-    `Original ${getFileFormat(sourceFile)}: ${formatFileSize(sourceFile.size)}.`;
+  elements.originalSize.textContent = `Original ${getFileFormat(sourceFile)}: ${formatFileSize(sourceFile.size)}.`;
   elements.webpSize.textContent = `Converted WebP: ${formatFileSize(webpBlob.size)}.`;
 
-  const savedPercent = ((sourceFile.size - webpBlob.size) / sourceFile.size) * 100;
+  const savedPercent =
+    ((sourceFile.size - webpBlob.size) / sourceFile.size) * 100;
   const sizeIncreased = savedPercent < 0;
 
   elements.sizeChange.textContent = sizeIncreased
@@ -221,7 +240,10 @@ async function convertActiveImage() {
     imageEntry.convertedQuality = quality;
     elements.convertedImage.src = imageEntry.convertedUrl;
     elements.downloadButton.href = imageEntry.convertedUrl;
-    elements.downloadButton.setAttribute("aria-disabled", String(state.images.length === 0));
+    elements.downloadButton.setAttribute(
+      "aria-disabled",
+      String(state.images.length === 0),
+    );
     showConversionInfo(imageEntry.file, webpBlob);
   } catch {
     // A failed conversion leaves the download disabled; the user can try again.
@@ -266,7 +288,10 @@ async function downloadAllImages() {
       downloadLink.remove();
 
       if (file.temporaryUrl) {
-        window.setTimeout(() => URL.revokeObjectURL(file.url), TEMP_URL_LIFETIME);
+        window.setTimeout(
+          () => URL.revokeObjectURL(file.url),
+          TEMP_URL_LIFETIME,
+        );
       }
     }, index * BATCH_DOWNLOAD_DELAY);
   });
@@ -317,7 +342,10 @@ function renderImageList() {
     selectButton.type = "button";
     selectButton.className = "imageThumbnail";
     selectButton.setAttribute("aria-label", `Select ${imageEntry.file.name}`);
-    selectButton.setAttribute("aria-pressed", String(imageEntry === state.activeImage));
+    selectButton.setAttribute(
+      "aria-pressed",
+      String(imageEntry === state.activeImage),
+    );
 
     thumbnail.src = imageEntry.originalUrl;
     thumbnail.alt = "";
@@ -340,6 +368,8 @@ function renderImageList() {
 }
 
 function selectImage(imageEntry, moveFocusToList = false) {
+  if (imageEntry === state.activeImage) return;
+
   window.clearTimeout(state.qualityTimer);
   state.qualityTimer = null;
   state.activeImage = imageEntry;
@@ -356,7 +386,9 @@ function selectImage(imageEntry, moveFocusToList = false) {
   renderImageList();
   updateComparisonPosition();
 
-  const selectedThumbnail = elements.imageList.querySelector('[aria-pressed="true"]');
+  const selectedThumbnail = elements.imageList.querySelector(
+    '[aria-pressed="true"]',
+  );
   selectedThumbnail?.scrollIntoView({ block: "nearest", inline: "nearest" });
 
   if (moveFocusToList) {
@@ -377,7 +409,9 @@ function loadImageFiles(files, moveFocusToList = false) {
   const acceptedFiles = files.slice(0, availableSlots);
 
   if (acceptedFiles.length === 0) {
-    updateImageCount(`Maximum of ${MAX_IMAGES} images reached. Remove an image before adding another.`);
+    updateImageCount(
+      `Maximum of ${MAX_IMAGES} images reached. Remove an image before adding another.`,
+    );
     return;
   }
 
@@ -461,9 +495,8 @@ function clearAllImages() {
 
 async function loadSampleImage() {
   const requestId = ++state.sampleRequestId;
-  const samplePath = sampleImagePaths[
-    Math.floor(Math.random() * sampleImagePaths.length)
-  ];
+  const samplePath =
+    sampleImagePaths[Math.floor(Math.random() * sampleImagePaths.length)];
 
   try {
     const response = await fetch(samplePath);
@@ -476,7 +509,8 @@ async function loadSampleImage() {
       new URL(samplePath, document.baseURI).pathname.split("/").pop(),
     );
     const extension = fileName.split(".").pop().toLowerCase();
-    const fileType = blob.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
+    const fileType =
+      blob.type || `image/${extension === "jpg" ? "jpeg" : extension}`;
     const file = new File([blob], fileName, { type: fileType });
 
     state.sampleImage = {
@@ -498,7 +532,9 @@ async function loadSampleImage() {
 
 elements.fileInput.addEventListener("change", () => {
   const selectedFiles = Array.from(elements.fileInput.files);
-  const imageFiles = selectedFiles.filter((file) => file.type.startsWith("image/"));
+  const imageFiles = selectedFiles.filter((file) =>
+    file.type.startsWith("image/"),
+  );
 
   if (imageFiles.length > 0) {
     state.sampleRequestId += 1;

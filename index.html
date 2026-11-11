@@ -23,8 +23,14 @@
     <!-- File list and actions -->
     <div id="sidebarColumn">
       <div class="brand">
-        <h1><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span> </h1>
+        <h2><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span> </h2>
       </div>
+      <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" multiple />
+      <div id="uploadControl">
+        <span id="uploadTooltip" role="status" hidden>Choose an image<br>to get started.</span>
+        <label for="imageInput" id="uploadButton">Choose Images</label>
+      </div>
+
       <aside id="imageSidebar" aria-label="Uploaded images">
         <div class="imageListHeading">
           <h2>Images</h2><span id="imageCount">0 / 10 max</span>
@@ -33,11 +39,6 @@
         <ul id="imageList" aria-live="polite"></ul>
       </aside>
 
-      <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" multiple />
-      <div id="uploadControl">
-        <span id="uploadTooltip" role="status" hidden>Choose an image to get started.</span>
-        <label for="imageInput" id="uploadButton">Choose Images</label>
-      </div>
       <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">Download WebP</a>
       <button type="button" id="clearImagesButton" disabled>Clear all</button>
     </div>
