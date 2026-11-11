@@ -336,7 +336,9 @@ function renderImageList() {
     const listItem = document.createElement("li");
     const selectButton = document.createElement("button");
     const thumbnail = document.createElement("img");
+    const imageInfo = document.createElement("span");
     const fileName = document.createElement("span");
+    const imageDimensions = document.createElement("span");
     const deleteButton = document.createElement("button");
 
     selectButton.type = "button";
@@ -351,8 +353,15 @@ function renderImageList() {
     thumbnail.alt = "";
     thumbnail.loading = "lazy";
     thumbnail.decoding = "async";
+    thumbnail.addEventListener("load", () => {
+      imageDimensions.textContent = `${thumbnail.naturalWidth}x${thumbnail.naturalHeight}px`;
+    });
     fileName.textContent = imageEntry.file.name;
-    selectButton.append(thumbnail, fileName);
+    imageInfo.className = "imageThumbnailInfo";
+    fileName.className = "imageThumbnailName";
+    imageDimensions.className = "imageThumbnailDimensions";
+    imageInfo.append(fileName, imageDimensions);
+    selectButton.append(thumbnail, imageInfo);
     selectButton.addEventListener("click", () => selectImage(imageEntry));
 
     deleteButton.type = "button";
