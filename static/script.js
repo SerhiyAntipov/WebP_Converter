@@ -392,7 +392,9 @@ function selectImage(imageEntry, moveFocusToList = false) {
   elements.imageComparison.hidden = false;
   elements.originalImage.onload = setStartingZoom;
   clearConversionInfo();
-  renderImageList();
+  elements.imageList.querySelectorAll(".imageThumbnail").forEach((button, index) => {
+    button.setAttribute("aria-pressed", String(state.images[index] === imageEntry));
+  });
   updateComparisonPosition();
 
   const selectedThumbnail = elements.imageList.querySelector(
@@ -444,6 +446,7 @@ function loadImageFiles(files, moveFocusToList = false) {
   }
 
   updateImageListAfterChange(message);
+  renderImageList();
   selectImage(newImages[0], moveFocusToList);
 }
 
@@ -455,9 +458,9 @@ function deleteImage(imageEntry) {
   releaseImage(imageEntry);
   state.images.splice(imageIndex, 1);
   updateImageListAfterChange();
+  renderImageList();
 
   if (!wasActiveImage) {
-    renderImageList();
     return;
   }
 
