@@ -441,7 +441,7 @@ async function downloadAllImages() {
     const zipUrl = URL.createObjectURL(createZipBlob(zipFiles));
     const downloadLink = document.createElement("a");
     downloadLink.href = zipUrl;
-    downloadLink.download = "converted-images.zip";
+    downloadLink.download = `converted-images-quality-${Math.round(quality * 100)}.zip`;
     document.body.append(downloadLink);
     downloadLink.click();
     downloadLink.remove();
