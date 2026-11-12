@@ -21,9 +21,9 @@
 <body>
   <main>
     <!-- File list and actions -->
-    <div id="sidebarColumn">
+    <aside id="sidebarColumn" aria-label="Image controls">
       <div class="brand">
-        <h2><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span> </h2>
+        <h2><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span></h2>
       </div>
       <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" multiple />
       <div id="uploadControl">
@@ -40,13 +40,13 @@
       </aside>
 
       <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">Download WebP</a>
-      <button type="button" id="clearImagesButton" disabled>Clear all</button>
-    </div>
+      <button type="button" id="clearImagesButton" disabled>Clear All</button>
+    </aside>
 
     <!-- Image comparison and conversion controls -->
     <section id="workspace" aria-label="Image converter">
       <div class="brand">
-        <h1><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span> </h1>
+        <h1><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span></h1>
       </div>
       <div id="imageComparison">
         <img id="originalImage" class="comparisonImage" alt="Original image" />
@@ -55,15 +55,16 @@
         </div>
 
         <span class="comparisonLabel comparisonLabelBefore">Before</span>
-        <span class="comparisonLabel comparisonLabelAfter">After</span>
-        <span id="sampleImageNotice" hidden>Sample image</span>
+        <span class="comparisonLabel comparisonLabelAfter">&#160After&#160</span>
+        <span class="comparisonLabel" id="sampleImageNotice" hidden>Sample Image</span>
+        
         <span class="comparisonDivider" aria-hidden="true"><span></span></span>
         <input type="range" id="comparisonSlider" class="comparisonSlider" min="0" max="100" value="50"
           aria-label="Compare image before and after conversion" aria-controls="imageComparison"
           aria-valuetext="Divider at 50% of the image width" />
       </div>
 
-      <div id="converterControls">
+      <fieldset id="converterControls" aria-label="Conversion settings">
         <div id="qualityControl">
           <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
           <label for="qualitySlider">
@@ -76,12 +77,12 @@
             aria-controls="imageComparison" />
           <label for="comparisonScale"> Zoom: <span id="comparisonScaleValue">100</span>% </label>
         </div>
-      </div>
+      </fieldset>
 
       <div id="converterInfo" aria-live="polite">
         <p id="originalSize"></p>
         <p id="webpSize"></p>
-        <p id="sizeChange"></p>
+        <p id="sizeChange" class="sizeReduction"></p>
       </div>
     </section>
   </main>

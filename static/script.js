@@ -35,12 +35,15 @@ const sampleImagePaths = [
   "./images/img_05.jpg",
 ];
 
+const SAMPLE_NOTICE_DURATION = 3000;
+
 // The sample is shown in the comparison but is never added to the user's list.
 const state = {
   images: [],
   activeImage: null,
   sampleImage: null,
   conversionId: 0,
+  conversionInProgress: false,
   sampleRequestId: 0,
   qualityTimer: null,
   imageListStatusTimer: null,
@@ -87,8 +90,34 @@ function updateImageCount(message = "") {
 }
 
 function updateDownloadButton() {
+  elements.downloadButton.setAttribute(
+    "aria-disabled",
+    String(
+      state.images.length === 0 ||
+        !state.activeImage ||
+        state.activeImage === state.sampleImage ||
+        !state.activeImage.convertedUrl,
+    ),
+  );
+  syncDownloadButtonLabel();
+}
+
+function syncDownloadButtonLabel() {
   elements.downloadButton.textContent =
-    state.images.length > 1 ? "Download all WebP" : "Download WebP";
+    state.conversionInProgress
+      ? "Convert to WebP"
+      : state.images.length > 1
+        ? "Download all WebP"
+        : "Download WebP";
+}
+
+function setDownloadState(url = null) {
+  const canDownload = Boolean(
+    url && state.images.length > 0 && state.activeImage !== state.sampleImage,
+  );
+  elements.downloadButton.href = canDownload ? url : "#";
+  elements.downloadButton.setAttribute("aria-disabled", String(!canDownload));
+  syncDownloadButtonLabel();
 }
 
 function createImageEntry(file) {
@@ -215,16 +244,16 @@ function convertImageToWebP(imageUrl, quality) {
 }
 
 function showConversionInfo(sourceFile, webpBlob) {
-  elements.originalSize.textContent = `Original ${getFileFormat(sourceFile)}: ${formatFileSize(sourceFile.size)}.`;
-  elements.webpSize.textContent = `Converted WebP: ${formatFileSize(webpBlob.size)}.`;
+  elements.originalSize.textContent = `Original ${getFileFormat(sourceFile)} Size: ${formatFileSize(sourceFile.size)}.`;
+  elements.webpSize.textContent = `Converted WebP Size: ${formatFileSize(webpBlob.size)}.`;
 
   const savedPercent =
     ((sourceFile.size - webpBlob.size) / sourceFile.size) * 100;
   const sizeIncreased = savedPercent < 0;
 
   elements.sizeChange.textContent = sizeIncreased
-    ? `Size increased ${Math.abs(savedPercent).toFixed(1)}%.`
-    : `Size reduction: ${savedPercent.toFixed(1)}%.`;
+    ? `Size Increased ${Math.abs(savedPercent).toFixed(1)}%.`
+    : `Size Reduction: ${savedPercent.toFixed(1)}%.`;
   elements.sizeChange.classList.toggle("sizeIncreased", sizeIncreased);
 }
 
@@ -232,6 +261,8 @@ async function convertActiveImage() {
   if (!state.activeImage) return;
 
   const conversionId = ++state.conversionId;
+  state.conversionInProgress = true;
+  syncDownloadButtonLabel();
   const imageEntry = state.activeImage;
   const quality = Number(elements.qualitySlider.value) / 100;
 
@@ -248,14 +279,16 @@ async function convertActiveImage() {
     imageEntry.convertedUrl = URL.createObjectURL(webpBlob);
     imageEntry.convertedQuality = quality;
     elements.convertedImage.src = imageEntry.convertedUrl;
-    elements.downloadButton.href = imageEntry.convertedUrl;
-    elements.downloadButton.setAttribute(
-      "aria-disabled",
-      String(state.images.length === 0),
-    );
+    setDownloadState(imageEntry.convertedUrl);
     showConversionInfo(imageEntry.file, webpBlob);
   } catch {
     // A failed conversion leaves the download disabled; the user can try again.
+    if (conversionId === state.conversionId) setDownloadState();
+  } finally {
+    if (conversionId === state.conversionId) {
+      state.conversionInProgress = false;
+      syncDownloadButtonLabel();
+    }
   }
 }
 
@@ -386,12 +419,14 @@ function renderImageList() {
 }
 
 function updateImageSelectionState() {
-  elements.imageList.querySelectorAll(".imageThumbnail").forEach((button, index) => {
-    button.setAttribute(
-      "aria-pressed",
-      String(state.images[index] === state.activeImage),
-    );
-  });
+  elements.imageList
+    .querySelectorAll(".imageThumbnail")
+    .forEach((button, index) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(state.images[index] === state.activeImage),
+      );
+    });
 }
 
 function selectImage(imageEntry, moveFocusToList = false) {
@@ -401,12 +436,12 @@ function selectImage(imageEntry, moveFocusToList = false) {
   state.qualityTimer = null;
   state.activeImage = imageEntry;
   state.conversionId += 1;
+  state.conversionInProgress = false;
 
   elements.sampleImageNotice.hidden = imageEntry !== state.sampleImage;
   elements.originalImage.src = imageEntry.originalUrl;
   elements.convertedImage.removeAttribute("src");
-  elements.downloadButton.href = "#";
-  elements.downloadButton.setAttribute("aria-disabled", "true");
+  setDownloadState();
   elements.imageComparison.hidden = false;
   elements.originalImage.onload = setStartingZoom;
   clearConversionInfo();
@@ -427,8 +462,8 @@ function selectImage(imageEntry, moveFocusToList = false) {
 
 function updateImageListAfterChange(message = "") {
   updateImageCount(message);
-  updateDownloadButton();
   elements.clearImagesButton.disabled = state.images.length === 0;
+  updateDownloadButton();
 }
 
 function loadImageFiles(files, moveFocusToList = false) {
@@ -489,6 +524,7 @@ function clearAllImages() {
   window.clearTimeout(state.qualityTimer);
   state.qualityTimer = null;
   state.conversionId += 1;
+  state.conversionInProgress = false;
 
   state.images.forEach(releaseImage);
   state.images.length = 0;
@@ -499,8 +535,7 @@ function clearAllImages() {
   elements.originalImage.removeAttribute("src");
   elements.convertedImage.removeAttribute("src");
   elements.imageComparison.hidden = true;
-  elements.downloadButton.href = "#";
-  elements.downloadButton.setAttribute("aria-disabled", "true");
+  setDownloadState();
   elements.zoomSlider.min = "0.1";
   elements.zoomSlider.max = "300";
   elements.zoomSlider.value = "100";
@@ -574,7 +609,9 @@ elements.qualitySlider.addEventListener("input", () => {
 
   // Ignore any conversion started with the previous quality value.
   state.conversionId += 1;
+  state.conversionInProgress = false;
   elements.downloadButton.setAttribute("aria-disabled", "true");
+  syncDownloadButtonLabel();
   window.clearTimeout(state.qualityTimer);
   state.qualityTimer = window.setTimeout(() => {
     state.qualityTimer = null;
@@ -599,5 +636,5 @@ window.addEventListener("beforeunload", releaseAllImageUrls);
 
 updateRangeFill(elements.qualitySlider);
 elements.uploadTooltip.hidden = false;
-window.setTimeout(hideUploadTooltip, 3000);
+window.setTimeout(hideUploadTooltip, SAMPLE_NOTICE_DURATION);
 loadSampleImage();
