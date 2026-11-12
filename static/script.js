@@ -24,7 +24,6 @@ const elements = {
 
 const MAX_IMAGES = 10;
 const QUALITY_UPDATE_DELAY = 140;
-const BATCH_DOWNLOAD_DELAY = 150;
 const TEMP_URL_LIFETIME = 120000;
 
 const sampleImagePaths = [
@@ -297,6 +296,86 @@ function getWebPFileName(fileName) {
   return `${nameWithoutExtension || fileName}.webp`;
 }
 
+function calculateCrc32(bytes) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function createZipBlob(files) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let localOffset = 0;
+  const now = new Date();
+  const dosTime =
+    (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+  const dosDate =
+    ((Math.max(1980, now.getFullYear()) - 1980) << 9) |
+    ((now.getMonth() + 1) << 5) |
+    now.getDate();
+
+  const makeHeader = (size) => new Uint8Array(size);
+  const write16 = (view, offset, value) => view.setUint16(offset, value, true);
+  const write32 = (view, offset, value) => view.setUint32(offset, value, true);
+
+  files.forEach(({ fileName, bytes }) => {
+    const nameBytes = encoder.encode(fileName);
+    const crc = calculateCrc32(bytes);
+    const localHeader = makeHeader(30 + nameBytes.length);
+    const localView = new DataView(localHeader.buffer);
+    write32(localView, 0, 0x04034b50);
+    write16(localView, 4, 20);
+    write16(localView, 6, 0x0800);
+    write16(localView, 8, 0);
+    write16(localView, 10, dosTime);
+    write16(localView, 12, dosDate);
+    write32(localView, 14, crc);
+    write32(localView, 18, bytes.length);
+    write32(localView, 22, bytes.length);
+    write16(localView, 26, nameBytes.length);
+    localHeader.set(nameBytes, 30);
+    localParts.push(localHeader, bytes);
+
+    const centralHeader = makeHeader(46 + nameBytes.length);
+    const centralView = new DataView(centralHeader.buffer);
+    write32(centralView, 0, 0x02014b50);
+    write16(centralView, 4, 20);
+    write16(centralView, 6, 20);
+    write16(centralView, 8, 0x0800);
+    write16(centralView, 10, 0);
+    write16(centralView, 12, dosTime);
+    write16(centralView, 14, dosDate);
+    write32(centralView, 16, crc);
+    write32(centralView, 20, bytes.length);
+    write32(centralView, 24, bytes.length);
+    write16(centralView, 28, nameBytes.length);
+    write32(centralView, 38, 0);
+    write32(centralView, 42, localOffset);
+    centralHeader.set(nameBytes, 46);
+    centralParts.push(centralHeader);
+    localOffset += localHeader.length + bytes.length;
+  });
+
+  const centralDirectory = new Blob(centralParts);
+  const endRecord = makeHeader(22);
+  const endView = new DataView(endRecord.buffer);
+  write32(endView, 0, 0x06054b50);
+  write16(endView, 8, files.length);
+  write16(endView, 10, files.length);
+  write32(endView, 12, centralDirectory.size);
+  write32(endView, 16, localOffset);
+
+  return new Blob([...localParts, centralDirectory, endRecord], {
+    type: "application/zip",
+  });
+}
+
 async function downloadAllImages() {
   const quality = Number(elements.qualitySlider.value) / 100;
   const filesToDownload = [];
@@ -306,8 +385,7 @@ async function downloadAllImages() {
     if (imageEntry.convertedUrl && imageEntry.convertedQuality === quality) {
       filesToDownload.push({
         fileName: getWebPFileName(imageEntry.file.name),
-        url: imageEntry.convertedUrl,
-        temporaryUrl: false,
+        blob: await fetch(imageEntry.convertedUrl).then((response) => response.blob()),
       });
       continue;
     }
@@ -315,28 +393,35 @@ async function downloadAllImages() {
     const webpBlob = await convertImageToWebP(imageEntry.originalUrl, quality);
     filesToDownload.push({
       fileName: getWebPFileName(imageEntry.file.name),
-      url: URL.createObjectURL(webpBlob),
-      temporaryUrl: true,
+      blob: webpBlob,
     });
   }
 
-  filesToDownload.forEach((file, index) => {
-    window.setTimeout(() => {
-      const downloadLink = document.createElement("a");
-      downloadLink.href = file.url;
-      downloadLink.download = file.fileName;
-      document.body.append(downloadLink);
-      downloadLink.click();
-      downloadLink.remove();
-
-      if (file.temporaryUrl) {
-        window.setTimeout(
-          () => URL.revokeObjectURL(file.url),
-          TEMP_URL_LIFETIME,
-        );
+  const usedNames = new Set();
+  const zipFiles = await Promise.all(
+    filesToDownload.map(async ({ fileName, blob }) => {
+      const baseName = fileName.replace(/\.webp$/i, "");
+      let uniqueName = fileName;
+      let suffix = 2;
+      while (usedNames.has(uniqueName.toLowerCase())) {
+        uniqueName = `${baseName} (${suffix}).webp`;
+        suffix += 1;
       }
-    }, index * BATCH_DOWNLOAD_DELAY);
-  });
+      usedNames.add(uniqueName.toLowerCase());
+      return { fileName: uniqueName, bytes: new Uint8Array(await blob.arrayBuffer()) };
+    }),
+  );
+
+  const zipUrl = URL.createObjectURL(createZipBlob(zipFiles));
+  const downloadLink = document.createElement("a");
+  downloadLink.href = zipUrl;
+  downloadLink.download = "converted-images.zip";
+  document.body.append(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  window.setTimeout(() => {
+    URL.revokeObjectURL(zipUrl);
+  }, TEMP_URL_LIFETIME);
 }
 
 // -----------------------------------------------------------------------------
@@ -396,7 +481,7 @@ function renderImageList() {
     thumbnail.loading = "lazy";
     thumbnail.decoding = "async";
     thumbnail.addEventListener("load", () => {
-      imageDimensions.textContent = `${thumbnail.naturalWidth}x${thumbnail.naturalHeight}px`;
+      imageDimensions.textContent = `${thumbnail.naturalWidth} x ${thumbnail.naturalHeight} px`;
     });
     fileName.textContent = imageEntry.file.name;
     imageInfo.className = "imageThumbnailInfo";

@@ -298,7 +298,7 @@ main {
   height: 48px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  object-fit: contain;
+  object-fit: cover;
   background: var(--color-image-bg);
 }
 
