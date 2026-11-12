@@ -667,7 +667,7 @@ main {
   min-width: 170px;
   margin: 0;
   border: 1px solid var(--color-border);
-  padding: 18px 5px;
+  padding: 18px 10px;
   border-radius: var(--radius-md);
   font-family: inherit;
   font-size: 1rem;
@@ -686,6 +686,61 @@ main {
   background: var(--background-button);
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+#sidebarColumn>#downloadButton[aria-disabled="true"][aria-busy="true"] {
+  opacity: 1;
+  cursor: progress;
+  background: var(--color-surface-hover);
+}
+
+#downloadProgressContainer {
+  display: flex;
+  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+}
+
+#downloadProgressContainer[hidden] {
+  display: none;
+}
+
+#downloadProgress {
+  width: min(100%, 260px);
+  height: 12px;
+  overflow: hidden;
+  appearance: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--background-button);
+}
+
+#downloadProgress::-webkit-progress-bar {
+  border-radius: 999px;
+  background: var(--background-button);
+}
+
+#downloadProgress::-webkit-progress-value {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-blue), var(--color-accent-bright));
+  transition: width 160ms ease;
+}
+
+#downloadProgress::-moz-progress-bar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-blue), var(--color-accent-bright));
+}
+
+#downloadProgressValue {
+  min-width: 5ch;
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 #uploadButton:hover,

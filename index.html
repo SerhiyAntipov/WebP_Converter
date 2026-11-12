@@ -33,13 +33,19 @@
 
       <aside id="imageSidebar" aria-label="Uploaded images">
         <div class="imageListHeading">
-          <h2>Images</h2><span id="imageCount">0 / 10 max</span>
+          <h2>Images</h2><span id="imageCount">0 / 20 max</span>
         </div>
         <p id="imageListStatus" role="status" aria-live="polite" hidden></p>
         <ul id="imageList" aria-live="polite"></ul>
       </aside>
 
-      <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">Download WebP</a>
+      <a id="downloadButton" href="#" aria-disabled="true" download="converted.webp">
+        <span id="downloadButtonLabel">Download WebP</span>
+        <span id="downloadProgressContainer" hidden>
+          <progress id="downloadProgress" max="100" value="0" aria-label="Download progress"></progress>
+          <span id="downloadProgressValue">0%</span>
+        </span>
+      </a>
       <button type="button" id="clearImagesButton" disabled>Clear All</button>
     </aside>
 

@@ -17,12 +17,16 @@ const elements = {
   qualitySlider: document.getElementById("qualitySlider"),
   qualityValue: document.getElementById("qualityValue"),
   downloadButton: document.getElementById("downloadButton"),
+  downloadButtonLabel: document.getElementById("downloadButtonLabel"),
+  downloadProgressContainer: document.getElementById("downloadProgressContainer"),
+  downloadProgress: document.getElementById("downloadProgress"),
+  downloadProgressValue: document.getElementById("downloadProgressValue"),
   originalSize: document.getElementById("originalSize"),
   webpSize: document.getElementById("webpSize"),
   sizeChange: document.getElementById("sizeChange"),
 };
 
-const MAX_IMAGES = 10;
+const MAX_IMAGES = 20;
 const QUALITY_UPDATE_DELAY = 140;
 const TEMP_URL_LIFETIME = 120000;
 
@@ -43,6 +47,7 @@ const state = {
   sampleImage: null,
   conversionId: 0,
   conversionInProgress: false,
+  batchDownloadInProgress: false,
   sampleRequestId: 0,
   qualityTimer: null,
   imageListStatusTimer: null,
@@ -95,19 +100,29 @@ function updateDownloadButton() {
       state.images.length === 0 ||
         !state.activeImage ||
         state.activeImage === state.sampleImage ||
-        !state.activeImage.convertedUrl,
+        !state.activeImage.convertedUrl ||
+        state.batchDownloadInProgress,
     ),
   );
   syncDownloadButtonLabel();
 }
 
 function syncDownloadButtonLabel() {
-  elements.downloadButton.textContent =
+  elements.downloadButtonLabel.textContent =
     state.conversionInProgress
       ? "Convert to WebP"
       : state.images.length > 1
-        ? "Download all WebP"
+        ? "Download All WebP"
         : "Download WebP";
+  const showProgress = state.batchDownloadInProgress;
+  elements.downloadButtonLabel.hidden = showProgress;
+  elements.downloadProgressContainer.hidden = !showProgress;
+}
+
+function updateBatchDownloadProgress(value) {
+  const progress = Math.max(0, Math.min(100, Math.round(value)));
+  elements.downloadProgress.value = progress;
+  elements.downloadProgressValue.textContent = `${progress}%`;
 }
 
 function setDownloadState(url = null) {
@@ -377,29 +392,37 @@ function createZipBlob(files) {
 }
 
 async function downloadAllImages() {
+  if (state.batchDownloadInProgress) return;
+
+  state.batchDownloadInProgress = true;
+  elements.downloadButton.setAttribute("aria-disabled", "true");
+  elements.downloadButton.setAttribute("aria-busy", "true");
+  updateBatchDownloadProgress(0);
+  syncDownloadButtonLabel();
+
   const quality = Number(elements.qualitySlider.value) / 100;
   const filesToDownload = [];
+  const imagesToDownload = [...state.images];
 
-  // Convert one file at a time so large images do not create many canvases at once.
-  for (const imageEntry of state.images) {
-    if (imageEntry.convertedUrl && imageEntry.convertedQuality === quality) {
+  try {
+    // Convert one file at a time so large images do not create many canvases at once.
+    for (const [index, imageEntry] of imagesToDownload.entries()) {
+      let blob;
+      if (imageEntry.convertedUrl && imageEntry.convertedQuality === quality) {
+        blob = await fetch(imageEntry.convertedUrl).then((response) => response.blob());
+      } else {
+        blob = await convertImageToWebP(imageEntry.originalUrl, quality);
+      }
       filesToDownload.push({
         fileName: getWebPFileName(imageEntry.file.name),
-        blob: await fetch(imageEntry.convertedUrl).then((response) => response.blob()),
+        blob,
       });
-      continue;
+      updateBatchDownloadProgress(((index + 1) / imagesToDownload.length) * 80);
     }
 
-    const webpBlob = await convertImageToWebP(imageEntry.originalUrl, quality);
-    filesToDownload.push({
-      fileName: getWebPFileName(imageEntry.file.name),
-      blob: webpBlob,
-    });
-  }
-
-  const usedNames = new Set();
-  const zipFiles = await Promise.all(
-    filesToDownload.map(async ({ fileName, blob }) => {
+    const usedNames = new Set();
+    const zipFiles = [];
+    for (const { fileName, blob } of filesToDownload) {
       const baseName = fileName.replace(/\.webp$/i, "");
       let uniqueName = fileName;
       let suffix = 2;
@@ -408,20 +431,28 @@ async function downloadAllImages() {
         suffix += 1;
       }
       usedNames.add(uniqueName.toLowerCase());
-      return { fileName: uniqueName, bytes: new Uint8Array(await blob.arrayBuffer()) };
-    }),
-  );
+      zipFiles.push({
+        fileName: uniqueName,
+        bytes: new Uint8Array(await blob.arrayBuffer()),
+      });
+      updateBatchDownloadProgress(80 + (zipFiles.length / filesToDownload.length) * 15);
+    }
 
-  const zipUrl = URL.createObjectURL(createZipBlob(zipFiles));
-  const downloadLink = document.createElement("a");
-  downloadLink.href = zipUrl;
-  downloadLink.download = "converted-images.zip";
-  document.body.append(downloadLink);
-  downloadLink.click();
-  downloadLink.remove();
-  window.setTimeout(() => {
-    URL.revokeObjectURL(zipUrl);
-  }, TEMP_URL_LIFETIME);
+    const zipUrl = URL.createObjectURL(createZipBlob(zipFiles));
+    const downloadLink = document.createElement("a");
+    downloadLink.href = zipUrl;
+    downloadLink.download = "converted-images.zip";
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    updateBatchDownloadProgress(100);
+    window.setTimeout(() => URL.revokeObjectURL(zipUrl), TEMP_URL_LIFETIME);
+    await new Promise((resolve) => window.setTimeout(resolve, 450));
+  } finally {
+    state.batchDownloadInProgress = false;
+    elements.downloadButton.removeAttribute("aria-busy");
+    updateDownloadButton();
+  }
 }
 
 // -----------------------------------------------------------------------------
