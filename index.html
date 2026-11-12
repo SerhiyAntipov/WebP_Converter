@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
   <title>WebP Converter</title>
 
   <!-- Browser and device icons -->
@@ -12,7 +13,6 @@
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-touch-icon.png" />
   <link rel="manifest" href="./favicon/site.webmanifest" />
-  <meta name="theme-color" content="#ffffff" />
 
   <link rel="stylesheet" href="./static/style.css" />
   <script src="./static/script.js" defer></script>
@@ -20,20 +20,28 @@
 
 <body>
   <main>
-    <!-- File list and actions -->
+    <!-- Image upload, list, and download actions -->
     <aside id="sidebarColumn" aria-label="Image controls">
       <div class="brand">
-        <h2><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span></h2>
+        <h2>
+          <span>WebP</span>
+          <img src="./favicon/android-chrome-192x192.png" alt="" />
+          <span>CONVERTER</span>
+        </h2>
       </div>
-      <input type="file" id="imageInput" accept="image/*" class="visuallyHidden" multiple />
+
+      <input id="imageInput" class="visuallyHidden" type="file" accept="image/*" multiple />
       <div id="uploadControl">
-        <span id="uploadTooltip" role="status" hidden>Choose an image<br>to get started.</span>
-        <label for="imageInput" id="uploadButton">Choose Images</label>
+        <span id="uploadTooltip" role="status" hidden>
+          Choose an image<br />to get started.
+        </span>
+        <label id="uploadButton" for="imageInput">Choose Images</label>
       </div>
 
       <aside id="imageSidebar" aria-label="Uploaded images">
         <div class="imageListHeading">
-          <h2>Images</h2><span id="imageCount">0 / 20 max</span>
+          <h2>Images</h2>
+          <span id="imageCount">0 / 20 max</span>
         </div>
         <p id="imageListStatus" role="status" aria-live="polite" hidden></p>
         <ul id="imageList" aria-live="polite"></ul>
@@ -46,14 +54,19 @@
           <span id="downloadProgressValue">0%</span>
         </span>
       </a>
-      <button type="button" id="clearImagesButton" disabled>Clear All</button>
+      <button id="clearImagesButton" type="button" disabled>Clear All</button>
     </aside>
 
-    <!-- Image comparison and conversion controls -->
+    <!-- Image comparison and conversion settings -->
     <section id="workspace" aria-label="Image converter">
       <div class="brand">
-        <h1><span>WebP</span><img src="./favicon/android-chrome-192x192.png" alt="" /><span>CONVERTER</span></h1>
+        <h1>
+          <span>WebP</span>
+          <img src="./favicon/android-chrome-192x192.png" alt="" />
+          <span>CONVERTER</span>
+        </h1>
       </div>
+
       <div id="imageComparison">
         <img id="originalImage" class="comparisonImage" alt="Original image" />
         <div class="comparisonAfter">
@@ -61,27 +74,24 @@
         </div>
 
         <span class="comparisonLabel comparisonLabelBefore">Before</span>
-        <span class="comparisonLabel comparisonLabelAfter">&#160After&#160</span>
-        <span class="comparisonLabel" id="sampleImageNotice" hidden>Sample Image</span>
-        
+        <span class="comparisonLabel comparisonLabelAfter">After</span>
+        <span id="sampleImageNotice" class="comparisonLabel" hidden>Sample Image</span>
         <span class="comparisonDivider" aria-hidden="true"><span></span></span>
-        <input type="range" id="comparisonSlider" class="comparisonSlider" min="0" max="100" value="50"
+        <input id="comparisonSlider" class="comparisonSlider" type="range" min="0" max="100" value="50"
           aria-label="Compare image before and after conversion" aria-controls="imageComparison"
           aria-valuetext="Divider at 50% of the image width" />
       </div>
 
       <fieldset id="converterControls" aria-label="Conversion settings">
         <div id="qualityControl">
-          <input type="range" id="qualitySlider" min="0" max="100" value="80" step="5" />
-          <label for="qualitySlider">
-            Quality: <span id="qualityValue">80</span>%
-          </label>
+          <input id="qualitySlider" type="range" min="0" max="100" value="80" step="5" />
+          <label for="qualitySlider">Quality: <span id="qualityValue">80</span>%</label>
         </div>
 
         <div id="scaleControl">
-          <input type="range" id="comparisonScale" min="0.1" max="300" value="0.1" step="0.1" aria-label="Image zoom"
+          <input id="comparisonScale" type="range" min="0.1" max="300" value="0.1" step="0.1" aria-label="Image zoom"
             aria-controls="imageComparison" />
-          <label for="comparisonScale"> Zoom: <span id="comparisonScaleValue">100</span>% </label>
+          <label for="comparisonScale">Zoom: <span id="comparisonScaleValue">100</span>%</label>
         </div>
       </fieldset>
 

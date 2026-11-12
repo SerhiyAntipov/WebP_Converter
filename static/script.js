@@ -29,16 +29,15 @@ const elements = {
 const MAX_IMAGES = 20;
 const QUALITY_UPDATE_DELAY = 140;
 const TEMP_URL_LIFETIME = 120000;
+const SAMPLE_NOTICE_DURATION = 3000;
 
-const sampleImagePaths = [
+const SAMPLE_IMAGE_PATHS = [
   "./images/img_01.jpg",
   "./images/img_02.jpg",
   "./images/img_03.jpg",
   "./images/img_04.jpg",
   "./images/img_05.jpg",
 ];
-
-const SAMPLE_NOTICE_DURATION = 3000;
 
 // The sample is shown in the comparison but is never added to the user's list.
 const state = {
@@ -94,17 +93,12 @@ function updateImageCount(message = "") {
 }
 
 function updateDownloadButton() {
-  elements.downloadButton.setAttribute(
-    "aria-disabled",
-    String(
-      state.images.length === 0 ||
-        !state.activeImage ||
-        state.activeImage === state.sampleImage ||
-        !state.activeImage.convertedUrl ||
-        state.batchDownloadInProgress,
-    ),
-  );
-  syncDownloadButtonLabel();
+  const quality = Number(elements.qualitySlider.value) / 100;
+  const activeImage = state.activeImage;
+  const hasCurrentConversion =
+    activeImage?.convertedQuality === quality ? activeImage.convertedUrl : null;
+
+  setDownloadState(hasCurrentConversion);
 }
 
 function syncDownloadButtonLabel() {
@@ -127,7 +121,10 @@ function updateBatchDownloadProgress(value) {
 
 function setDownloadState(url = null) {
   const canDownload = Boolean(
-    url && state.images.length > 0 && state.activeImage !== state.sampleImage,
+    url &&
+      state.images.length > 0 &&
+      state.activeImage !== state.sampleImage &&
+      !state.batchDownloadInProgress,
   );
   elements.downloadButton.href = canDownload ? url : "#";
   elements.downloadButton.setAttribute("aria-disabled", String(!canDownload));
@@ -312,6 +309,7 @@ function getWebPFileName(fileName) {
 }
 
 function calculateCrc32(bytes) {
+  // ZIP stores a checksum for every file so archive tools can detect corruption.
   let crc = 0xffffffff;
   for (const byte of bytes) {
     crc ^= byte;
@@ -323,6 +321,7 @@ function calculateCrc32(bytes) {
 }
 
 function createZipBlob(files) {
+  // Write a small, uncompressed ZIP archive without adding a library dependency.
   const encoder = new TextEncoder();
   const localParts = [];
   const centralParts = [];
@@ -342,6 +341,8 @@ function createZipBlob(files) {
   files.forEach(({ fileName, bytes }) => {
     const nameBytes = encoder.encode(fileName);
     const crc = calculateCrc32(bytes);
+
+    // Each file needs a local header followed by its name and image data.
     const localHeader = makeHeader(30 + nameBytes.length);
     const localView = new DataView(localHeader.buffer);
     write32(localView, 0, 0x04034b50);
@@ -357,6 +358,7 @@ function createZipBlob(files) {
     localHeader.set(nameBytes, 30);
     localParts.push(localHeader, bytes);
 
+    // The central directory repeats file details and points to each local header.
     const centralHeader = makeHeader(46 + nameBytes.length);
     const centralView = new DataView(centralHeader.buffer);
     write32(centralView, 0, 0x02014b50);
@@ -386,6 +388,7 @@ function createZipBlob(files) {
   write32(endView, 12, centralDirectory.size);
   write32(endView, 16, localOffset);
 
+  // The end record lets ZIP readers find the central directory.
   return new Blob([...localParts, centralDirectory, endRecord], {
     type: "application/zip",
   });
@@ -670,7 +673,7 @@ function clearAllImages() {
 async function loadSampleImage() {
   const requestId = ++state.sampleRequestId;
   const samplePath =
-    sampleImagePaths[Math.floor(Math.random() * sampleImagePaths.length)];
+    SAMPLE_IMAGE_PATHS[Math.floor(Math.random() * SAMPLE_IMAGE_PATHS.length)];
 
   try {
     const response = await fetch(samplePath);
