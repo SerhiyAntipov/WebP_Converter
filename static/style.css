@@ -47,7 +47,7 @@ body {
   margin: 0 auto;
   color: var(--color-text);
   text-align: center;
-  background: radial-gradient(ellipse at 50% 0%, var(--color-bg-top), var(--color-bg) 72%);
+  background: url("../images/body-background.png") left center / auto 100% repeat-x fixed;
 }
 
 h1 {
@@ -340,6 +340,20 @@ main {
   box-shadow: var(--shadow-card);
 }
 
+#imageComparison::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 3px 6px rgb(0 0 0 / 65%),
+    inset 0 -3px 5px rgb(255 255 255 / 22%),
+    inset 3px 0 5px rgb(0 0 0 / 35%),
+    inset -3px 0 5px rgb(255 255 255 / 14%);
+  content: "";
+  pointer-events: none;
+}
+
 .comparisonImage {
   display: block;
   width: 100%;
@@ -360,7 +374,7 @@ main {
 
 .comparisonLabel {
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   top: 12px;
   padding: 6px 8px;
 
@@ -389,7 +403,7 @@ main {
 
 .comparisonDivider {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 0;
   bottom: 0;
   left: var(--position);
@@ -442,7 +456,7 @@ main {
 
 .comparisonSlider {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -506,6 +520,11 @@ main {
   border-radius: var(--radius-md);
   color: var(--color-text);
   background: var(--color-surface);
+  box-shadow:
+    0 2px 0 var(--color-bg),
+    0 8px 14px rgb(0 0 0 / 42%),
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    inset 0 -1px 0 rgb(0 0 0 / 28%);
 }
 
 #qualityControl {
@@ -606,7 +625,8 @@ main {
   max-width: 420px;
   min-width: 170px;
   margin: 0;
-  border: 1px solid var(--color-border);
+  /* border: 1px solid var(--color-border); */
+  border: none;
   padding: 18px 10px;
   border-radius: var(--radius-md);
   font-family: inherit;
@@ -623,6 +643,51 @@ main {
 #downloadButton[aria-disabled="true"] {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+#uploadButton,
+#downloadButton,
+#clearImagesButton {
+  box-shadow:
+    0 4px 0 var(--color-bg),
+    0 7px 12px rgb(0 0 0 / 36%),
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    inset 0 -1px 0 rgb(0 0 0 / 28%);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+#uploadButton:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 2px 0 var(--color-bg),
+    0 3px 6px rgb(0 0 0 / 28%),
+    inset 0 1px 0 rgb(255 255 255 / 18%);
+  transform: translateY(1px);
+}
+
+#downloadButton:not([aria-disabled="true"]):hover,
+#clearImagesButton:not(:disabled):hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 2px 0 var(--color-bg),
+    0 3px 6px rgb(0 0 0 / 28%),
+    inset 0 1px 0 rgb(255 255 255 / 18%);
+  transform: translateY(1px);
+}
+
+#uploadButton:active,
+#downloadButton:not([aria-disabled="true"]):active,
+#clearImagesButton:not(:disabled):active {
+  box-shadow:
+    0 0 0 var(--color-bg),
+    0 1px 2px rgb(0 0 0 / 24%),
+    inset 0 1px 2px rgb(0 0 0 / 30%);
+  transform: translateY(3px);
+}
+
+#imageInput:focus-visible + #uploadControl #uploadButton {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 #sidebarColumn>#downloadButton[aria-disabled="true"][aria-busy="true"] {
@@ -710,6 +775,7 @@ main {
   padding: 7px 12px;
   color: var(--color-success);
   background: var(--color-surface-raised);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 55%);
   font-size: 0.9rem;
   font-weight: bold;
   line-height: 1.2;
@@ -774,6 +840,13 @@ main {
 
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow:
+    0 2px 0 var(--color-bg),
+    0 8px 14px rgb(0 0 0 / 42%),
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    inset 0 -1px 0 rgb(0 0 0 / 28%);
 }
 
 #converterInfo p {
@@ -810,7 +883,7 @@ main {
 
     border-width: 40px;
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: var(--shadow-card);
     padding: 20px;
     margin: 0px;
   }
