@@ -5,31 +5,36 @@
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
 
-  /* Shared palette: keep new colors here so the UI stays consistent. */
+  /* Backgrounds and surfaces */
   --color-bg: #172126;
   --color-bg-top: #34474c;
   --color-main-bg-top: #848d96;
   --color-main-bg-bottom: #33363b;
   --color-surface: #22343b;
-  --color-surface-raised: #2c454d;
-  --color-border: #55757b;
+
+  /* Text and borders */
   --color-text: #e8f0f1;
   --color-muted: #a8c3c7;
+  --color-border: #55757b;
+
+  /* Accent and status colors */
   --color-accent: #29b9c5;
   --color-danger: #d95761;
   --color-success: #72dc7a;
+
+  /* Image preview and utility colors */
   --color-image-bg: #ddd;
-  --color-shadow: rgb(0 0 0 / 28%);
+  --color-shadow: rgb(0 0 0 / 30%);
   --color-transparent: transparent;
 
   /* Reusable component values */
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: 11px;
+  --radius-lg: 10px;
   --radius-xl: 30px;
   --radius-pill: 999px;
-  --background-button: var(--color-surface-raised);
-  --shadow-card: 0 6px 18px var(--color-shadow);
+  --background-button: var(--color-bg-top);
+  --shadow-card: 0 4px 8px var(--color-shadow);
   --main-padding: clamp(20px, 3vw, 40px);
 }
 
@@ -243,7 +248,7 @@ main {
 
 .imageThumbnail:hover:not([aria-pressed="true"]) {
   border-color: var(--color-border);
-  background: var(--color-surface-raised);
+  background: var(--color-bg-top);
 }
 
 .imageThumbnail[aria-pressed="true"] {
@@ -608,7 +613,7 @@ main {
 
 #scaleControl:hover,
 #qualityControl:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-bg-top);
 }
 
 /* Keep the native file input accessible while hiding its default appearance. */
@@ -699,7 +704,7 @@ main {
 #sidebarColumn>#downloadButton[aria-disabled="true"][aria-busy="true"] {
   opacity: 1;
   cursor: progress;
-  background: var(--color-surface-raised);
+  background: var(--color-bg-top);
 }
 
 #downloadProgressContainer {
@@ -752,7 +757,7 @@ main {
 
 #uploadButton:hover,
 #clearImagesButton:hover:not(:disabled) {
-  background: var(--color-surface-raised);
+  background: var(--color-bg-top);
 }
 
 #uploadControl {
@@ -780,7 +785,7 @@ main {
   border-radius: var(--radius-md);
   padding: 7px 12px;
   color: var(--color-success);
-  background: var(--color-surface-raised);
+  background: var(--color-bg-top);
   box-shadow: 0 8px 18px rgb(0 0 0 / 55%);
   font-size: 0.9rem;
   font-weight: bold;
@@ -801,7 +806,7 @@ main {
   border-bottom: none;
   border-right: 1px solid var(--color-success);
   border-top: 1px solid var(--color-success);
-  background: var(--color-surface-raised);
+  background: var(--color-bg-top);
   content: "";
   transform: translate(-50%, 50%) rotate(-45deg);
 }
