@@ -8,6 +8,8 @@
   /* Shared palette: keep new colors here so the UI stays consistent. */
   --color-bg: #172126;
   --color-bg-top: #34474c;
+  --color-main-bg-top: #848d96;
+  --color-main-bg-bottom: #33363b;
   --color-surface: #22343b;
   --color-surface-raised: #2c454d;
   --color-border: #55757b;
@@ -47,6 +49,10 @@ body {
   margin: 0 auto;
   color: var(--color-text);
   text-align: center;
+
+  /* background: linear-gradient(to bottom,
+      var(--color-main-bg-top) 0% 85%,
+      var(--color-main-bg-bottom) 85% 100%); */
   background: url("../images/body-background.png") left center / auto 100% repeat-x fixed;
 }
 
@@ -110,7 +116,7 @@ main {
   margin: auto;
 
   padding: var(--main-padding);
-  /* border: 40px solid transparent; */
+
   border-radius: var(--radius-xl);
   border-image-source: url("../images/frame-9slice.png");
   border-image-slice: 100 fill;
@@ -685,7 +691,7 @@ main {
   transform: translateY(3px);
 }
 
-#imageInput:focus-visible + #uploadControl #uploadButton {
+#imageInput:focus-visible+#uploadControl #uploadButton {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;
 }
@@ -875,27 +881,40 @@ main {
 }
 
 @media (max-width: 720px) {
+
   main {
-    max-width: none;
-    max-height: none;
     aspect-ratio: auto;
-    width: 100%;
+    max-height: 98%;
+    max-width: 98%;
 
     border-width: 40px;
-    border-radius: 0;
-    box-shadow: var(--shadow-card);
-    padding: 20px;
-    margin: 0px;
+    box-shadow: none;
   }
 
   body {
-    /* height: auto;
-    min-height: 0; */
-    background: var(--color-bg);
+    background: linear-gradient(to bottom,
+        var(--color-main-bg-top) 0% 85%,
+        var(--color-main-bg-bottom) 85% 100%);
   }
+
 }
 
 @media (max-width: 600px) {
+  body {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  main {
+    max-width: none;
+    max-height: none;
+    width: 100%;
+    box-shadow: none;
+
+    border-radius: 0;
+    border: none;
+  }
+
   #qualityControl {
     flex: 3 1 0;
   }
@@ -906,20 +925,24 @@ main {
 }
 
 @media (max-width: 480px) {
+
   body {
     height: auto;
     min-height: 0;
   }
 
+  main {
+    border-radius: var(--radius-xl);
+    border-image-source: url("../images/frame-9slice.png");
+    border-image-slice: 100 fill;
+    border-image-width: 40px;
+    border-image-repeat: stretch;
+  }
+
+
   #scaleControl,
   #qualityControl {
     padding: 5px 10px;
-  }
-
-  #uploadButton,
-  #clearImagesButton,
-  #downloadButton {
-    padding: 8px 5px;
   }
 
   #sidebarColumn>.brand {
@@ -999,34 +1022,39 @@ main {
   }
 }
 
-@media (max-height: 420px) {
+@media (max-width: 360px) {
+  body {
+    background:  var(--color-bg)
+  }
+
+  main {
+    border-radius: 0;
+    border: none;
+  }
+}
+
+@media (max-height: 600px) {
   body {
     height: auto;
     min-height: 0;
     max-height: none;
-    background: var(--color-bg);
+
+    /* padding-top: 20px;
+    padding-bottom: 20px; */
   }
 
   main {
-    height: auto;
-    min-height: 0;
-    max-height: none;
-
-    max-width: none;
+    min-height: 560px;
+    max-height: auto;
     aspect-ratio: auto;
-    width: 100%;
     flex: 0 0 auto;
+  }
+}
 
-    border-radius: 0;
-    box-shadow: none;
+@media (max-height: 600px) and (min-width: 601px) {
+  body {
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
-  #sidebarColumn,
-  #imageSidebar,
-  #workspace,
-  #imageComparison {
-    height: auto;
-    min-height: 170px;
-    max-height: none;
-  }
 }
